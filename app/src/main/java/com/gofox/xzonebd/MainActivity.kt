@@ -1,6 +1,9 @@
 package com.gofox.xzonebd
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -9,6 +12,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
@@ -18,21 +22,25 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.text.InputType
+import android.util.Base64
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.webkit.*
 import android.widget.*
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.net.URLEncoder
 
 class Tab(val web: WebView) {
     var title = ""
     var url = ""
     var isHome = false
+    var thumbnailBase64: String = "" // আসল পেজের থাম্বনেইল
 }
 
 class MainActivity : Activity() {
@@ -47,6 +55,7 @@ class MainActivity : Activity() {
     private lateinit var store: Store
     private lateinit var root: FrameLayout
     private lateinit var content: FrameLayout
+    private lateinit var barContainer: LinearLayout
     private lateinit var bar: LinearLayout
     private lateinit var lockView: TextView
     private lateinit var urlEdit: EditText
@@ -61,6 +70,12 @@ class MainActivity : Activity() {
     private var barF = 1f
     private var barTarget = 1f
     private var barAnim: ValueAnimator? = null
+    private var progressAnim: ObjectAnimator? = null
+
+    // স্ক্রোল থ্রেশহোল্ড ট্র্যাকিং (Chrome Style)
+    private var accumulatedScrollY = 0
+    private val SCROLL_THRESHOLD = 50 // কমপক্ষে ৫০ পিক্সেল স্ক্রোল হতে হবে
+
     private var customView: View? = null
     private var customCb: WebChromeClient.CustomViewCallback? = null
     private var fileCb: ValueCallback<Array<Uri>>? = null
@@ -120,14 +135,14 @@ class MainActivity : Activity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun buildUi() {
-        root = FrameLayout(this)
-        root.setBackgroundColor(Color.parseColor("#F8F9FA"))
+        root = FrameLayout(this).apply {
+            setBackgroundColor(Color.parseColor("#F8F9FA"))
+        }
 
         content = FrameLayout(this)
         root.addView(content, FrameLayout.LayoutParams(-1, -1))
 
-        // URL bar container
-        val barContainer = LinearLayout(this).apply {
+        barContainer = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
         }
 
@@ -182,7 +197,7 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER
             setTextColor(Color.parseColor("#374151"))
             background = GradientDrawable().apply {
-                setStroke(dp(1.8f.toInt()), Color.parseColor("#374151"))
+                setStroke(dp(2), Color.parseColor("#374151"))
                 cornerRadius = dp(6).toFloat()
             }
             setOnClickListener { showPanel("tabs.html") }
@@ -196,9 +211,9 @@ class MainActivity : Activity() {
         bar.addView(tabCount, LinearLayout.LayoutParams(dp(22), dp(22)).apply { setMargins(dp(6), 0, dp(6), 0) })
         bar.addView(more, LinearLayout.LayoutParams(dp(36), -1))
 
-        // Chrome-like Progress Bar
+        // ক্রোম স্টাইল স্মুথ প্রগ্রেস বার
         progressBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-            max = 100
+            max = 1000
             progress = 0
             visibility = View.GONE
             val d = GradientDrawable().apply {
@@ -209,7 +224,7 @@ class MainActivity : Activity() {
         }
 
         barContainer.addView(bar, LinearLayout.LayoutParams(-1, dp(48)))
-        barContainer.addView(progressBar, LinearLayout.LayoutParams(-1, dp(3)).apply { setMargins(dp(8), dp(2), dp(8), 0) })
+        barContainer.addView(progressBar, LinearLayout.LayoutParams(-1, dp(2)).apply { setMargins(dp(14), dp(2), dp(14), 0) })
 
         root.addView(barContainer, FrameLayout.LayoutParams(-1, -2).apply { setMargins(dp(10), dp(6), dp(10), 0) })
 
@@ -260,21 +275,49 @@ class MainActivity : Activity() {
         setOnClickListener { click() }
     }
 
+    // ক্রোম স্টাইল স্মুথ প্রগ্রেস অ্যানিমেশন
+    private fun animateProgress(newProgress: Int) {
+        val target = newProgress * 10
+        progressAnim?.cancel()
+        if (progressBar.visibility != View.VISIBLE) {
+            progressBar.alpha = 1f
+            progressBar.visibility = View.VISIBLE
+            progressBar.progress = 0
+        }
+        progressAnim = ObjectAnimator.ofInt(progressBar, "progress", progressBar.progress, target).apply {
+            duration = if (newProgress >= 100) 180 else 280
+            interpolator = DecelerateInterpolator()
+            start()
+        }
+
+        if (newProgress >= 100) {
+            progressBar.animate().alpha(0f).setDuration(250).setStartDelay(150)
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        progressBar.visibility = View.GONE
+                        progressBar.progress = 0
+                        progressBar.alpha = 1f
+                    }
+                }).start()
+        }
+    }
+
     private fun applyBar(f: Float) {
         barF = f
-        val p = bar.parent as? View ?: bar
-        p.translationY = -(1 - f) * dp(62)
+        barContainer.translationY = -(1 - f) * dp(62)
         (content.layoutParams as FrameLayout.LayoutParams).topMargin = (f * dp(58)).toInt()
         content.requestLayout()
     }
 
+    // স্মুথ বার অ্যানিমেশন
     private fun setBar(show: Boolean) {
         val t = if (show) 1f else 0f
         if (t == barTarget) return
         barTarget = t
         barAnim?.cancel()
         barAnim = ValueAnimator.ofFloat(barF, t).apply {
-            duration = 180
+            duration = 220
+            interpolator = DecelerateInterpolator()
             addUpdateListener { applyBar(it.animatedValue as Float) }
             start()
         }
@@ -287,18 +330,37 @@ class MainActivity : Activity() {
         homeActive = t.isHome
         tabCount.text = tabs.size.toString()
         barAnim?.cancel()
-        val p = bar.parent as? View ?: bar
         if (t.isHome) {
-            p.visibility = View.GONE
+            barContainer.visibility = View.GONE
             barTarget = 0f
             applyBar(0f)
         } else {
-            p.visibility = View.VISIBLE
+            barContainer.visibility = View.VISIBLE
             barTarget = 1f
             applyBar(1f)
             lockView.text = if (t.url.startsWith("https")) "🔒" else "⚠️"
             if (!urlEdit.hasFocus()) urlEdit.setText(shown(t.url))
         }
+    }
+
+    // বর্তমান ট্যাবের স্ক্রিনশট/থাম্বনেইল তোলা
+    private fun captureCurrentThumbnail() {
+        val t = tabs.getOrNull(cur) ?: return
+        if (t.isHome || t.web.width <= 0 || t.web.height <= 0) return
+        try {
+            val scale = 0.35f
+            val w = (t.web.width * scale).toInt()
+            val h = (t.web.height * scale).toInt()
+            if (w <= 0 || h <= 0) return
+            val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565)
+            val c = Canvas(bmp)
+            c.scale(scale, scale)
+            t.web.draw(c)
+            val baos = ByteArrayOutputStream()
+            bmp.compress(Bitmap.CompressFormat.JPEG, 70, baos)
+            t.thumbnailBase64 = "data:image/jpeg;base64," + Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP)
+            bmp.recycle()
+        } catch (e: Exception) { }
     }
 
     private fun notify(m: String) = runOnUiThread {
@@ -354,9 +416,9 @@ class MainActivity : Activity() {
     }
 
     private fun showPanel(page: String) {
+        captureCurrentThumbnail() // প্যানেলে যাওয়ার আগে পেজের থাম্বনেইল ক্যাশ করা
         urlEdit.clearFocus()
-        val p = bar.parent as? View ?: bar
-        p.visibility = View.GONE  // Fix: প্যানেলে অ্যাড্রেস বার দেখাবে না
+        barContainer.visibility = View.GONE
         panel.loadUrl(ASSET + page)
         panel.alpha = 0f
         panel.visibility = View.VISIBLE
@@ -368,13 +430,14 @@ class MainActivity : Activity() {
         panel.animate().cancel()
         panel.visibility = View.GONE
         panel.loadUrl("about:blank")
-        refreshUi() // Fix: প্যানেল কাটলে অ্যাড্রেস বার স্বাভাবিক হবে
+        refreshUi()
     }
 
     private fun start(): String = store.homeUrl.ifBlank { HOME }
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun newTab(url: String? = null) {
+        captureCurrentThumbnail()
         val web = WebView(this)
         val tab = Tab(web)
         configure(web, tab)
@@ -392,6 +455,7 @@ class MainActivity : Activity() {
     private fun switchTo(i: Int) {
         cur = i
         tabs.forEachIndexed { j, t -> t.web.visibility = if (j == i) View.VISIBLE else View.GONE }
+        accumulatedScrollY = 0
         refreshUi()
     }
 
@@ -409,6 +473,7 @@ class MainActivity : Activity() {
         val t = tabs[cur]
         t.url = u
         t.isHome = u == HOME
+        t.thumbnailBase64 = ""
         t.web.loadUrl(u)
         refreshUi()
     }
@@ -462,12 +527,34 @@ class MainActivity : Activity() {
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
         web.addJavascriptInterface(HomeBridge(), "Android")
 
+        // ক্রোম স্টাইল স্ক্রোল লজিক: সংবেদনশীল থ্রেশহোল্ড
         web.setOnScrollChangeListener { _, _, y, _, oy ->
             if (tabs.getOrNull(cur)?.web === web && !tab.isHome) {
-                val d = y - oy
-                if (y <= 0 || d < -6) setBar(true) else if (d > 6) setBar(false)
+                val dy = y - oy
+
+                // একদম পেজের টপে থাকলে সবসময় বার শো করবে
+                if (y <= 15) {
+                    accumulatedScrollY = 0
+                    setBar(true)
+                    return@setOnScrollChangeListener
+                }
+
+                // ডিরেকশন পরিবর্তনের সাথে ট্র্যাকিং
+                if ((dy > 0 && accumulatedScrollY < 0) || (dy < 0 && accumulatedScrollY > 0)) {
+                    accumulatedScrollY = 0
+                }
+
+                accumulatedScrollY += dy
+
+                // শুধুমাত্র সুনির্দিষ্টভাবে স্ক্রোল করলে বার একশন নিবে
+                if (accumulatedScrollY > SCROLL_THRESHOLD) {
+                    setBar(false) // নিচে নামলে হাইড হবে
+                } else if (accumulatedScrollY < -SCROLL_THRESHOLD) {
+                    setBar(true)  // স্পষ্ট উপরে উঠলে শো করবে
+                }
             }
         }
+
         web.setDownloadListener { url, ua, cd, mime, _ -> startDownload(url, ua, cd, mime) }
         web.webViewClient = object : WebViewClient() {
             override fun onPageStarted(v: WebView, u: String, f: Bitmap?) {
@@ -475,10 +562,7 @@ class MainActivity : Activity() {
                 tab.isHome = u == HOME
                 if (tabs.getOrNull(cur) === tab) {
                     refreshUi()
-                    if (!tab.isHome) {
-                        progressBar.visibility = View.VISIBLE
-                        progressBar.progress = 10
-                    }
+                    if (!tab.isHome) animateProgress(15)
                 }
             }
 
@@ -486,7 +570,9 @@ class MainActivity : Activity() {
                 tab.title = v.title ?: ""
                 if (!tab.isHome && u.startsWith("http")) store.addHistory(tab.title.ifBlank { shown(u) }, u)
                 if (tabs.getOrNull(cur) === tab) {
-                    progressBar.visibility = View.GONE
+                    animateProgress(100)
+                    // পেজ লোড শেষ হলে থাম্বনেইল ক্যাপচার
+                    v.postDelayed({ captureCurrentThumbnail() }, 600)
                 }
             }
 
@@ -506,15 +592,11 @@ class MainActivity : Activity() {
                 return true
             }
         }
+
         web.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(v: WebView?, newProgress: Int) {
                 if (tabs.getOrNull(cur)?.web === v && !tab.isHome) {
-                    if (newProgress < 100) {
-                        progressBar.visibility = View.VISIBLE
-                        progressBar.progress = newProgress
-                    } else {
-                        progressBar.visibility = View.GONE
-                    }
+                    animateProgress(newProgress)
                 }
             }
 
@@ -634,7 +716,6 @@ class MainActivity : Activity() {
         }
     }
 
-    // Home Bridge
     inner class HomeBridge {
         @JavascriptInterface fun getShortcuts(): String = if (homeActive) store.shortcuts().toString() else "[]"
         @JavascriptInterface fun getTabCount(): Int = tabs.size
@@ -661,7 +742,6 @@ class MainActivity : Activity() {
         }
     }
 
-    // Panel Bridge
     inner class PanelBridge {
         @JavascriptInterface fun close() = runOnUiThread { hidePanel() }
         @JavascriptInterface fun notify(m: String) = this@MainActivity.notify(m)
@@ -702,11 +782,19 @@ class MainActivity : Activity() {
             }
         }
 
+        // ট্যাবগুলোর আসল স্ক্রিনশট থাম্বনেইল সহ JSON পাঠানো
         @JavascriptInterface fun getTabs(): String {
             val a = JSONArray()
             tabs.forEachIndexed { i, t ->
                 val title = if (t.isHome) "Home" else t.title.ifBlank { shown(t.url) }
-                a.put(JSONObject().put("i", i).put("title", title).put("url", if (t.isHome) "" else shown(t.url)).put("cur", i == cur))
+                a.put(
+                    JSONObject()
+                        .put("i", i)
+                        .put("title", title)
+                        .put("url", if (t.isHome) "" else shown(t.url))
+                        .put("thumb", t.thumbnailBase64)
+                        .put("cur", i == cur)
+                )
             }
             return a.toString()
         }
