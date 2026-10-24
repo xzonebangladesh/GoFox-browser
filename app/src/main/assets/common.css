@@ -1,26 +1,188 @@
-:root{--acc:#FF6A1A;--txt:#1c1c1e;--sub:#6c6c70}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,"SF Pro Text",system-ui,Roboto,sans-serif;color:var(--txt);min-height:100vh;padding:8px 12px 40px;
-background:radial-gradient(circle at 12% 8%,#ffd2b0 0,transparent 42%),radial-gradient(circle at 95% 28%,#bcd0ff 0,transparent 45%),radial-gradient(circle at 25% 92%,#e6bfff 0,transparent 50%),#f2f2f7;background-attachment:fixed}
-.glass{background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid rgba(255,255,255,.75);box-shadow:0 8px 30px rgba(60,60,140,.14)}
-.hdr{display:flex;align-items:center;gap:12px;padding:10px 14px;margin:4px 0 12px;border-radius:22px;font-size:19px;font-weight:700;position:sticky;top:6px;z-index:5}
-.hdr h2{flex:1;font-size:19px}.hdr button{background:none;border:0;font-size:26px;color:#333;padding:0 6px;line-height:1}
-.list{border-radius:20px;overflow:hidden;margin-bottom:6px}
-.row{display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid rgba(0,0,0,.06);font-size:15px;touch-action:pan-y}
-.row:last-child{border-bottom:0}.row .m{flex:1;min-width:0}.row .m div:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sub{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.g{font-size:12px;color:var(--sub);padding:14px 16px 6px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.circ{width:44px;height:44px;border-radius:22%;color:#fff;font-weight:700;font-size:19px;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 4px 10px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.4)}
-.empty{text-align:center;color:var(--sub);padding:60px 20px;font-size:15px}
-.ib{background:none;border:0;font-size:18px;padding:6px;color:#777}
-.dim{position:fixed;inset:0;background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:50;display:flex;align-items:center;justify-content:center}
-.dlg{width:86%;max-width:340px;border-radius:26px;padding:22px;background:rgba(255,255,255,.8)}
-.sheet{position:fixed;left:10px;right:10px;bottom:12px;border-radius:28px;padding:10px 10px 14px;background:rgba(255,255,255,.82);animation:up .22s ease-out}
-@keyframes up{from{transform:translateY(100%)}to{transform:none}}
-.dlg h3,.sheet h3{font-size:18px;margin-bottom:8px;padding:0 6px}.dlg p{color:var(--sub);font-size:14px;margin-bottom:16px}
-.dlg input{width:100%;padding:13px 14px;border-radius:14px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.8);font-size:15px;margin-bottom:10px;outline:none}
-.btns{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
-.btns button{border:0;border-radius:14px;padding:11px 18px;font-size:15px;font-weight:600;background:rgba(0,0,0,.07);color:#222}
-.btns button.b1{background:var(--acc);color:#fff}
-.opt{display:flex;align-items:center;justify-content:space-between;padding:15px 14px;font-size:16px;border-radius:16px}
-.opt.on{background:rgba(255,106,26,.12);color:var(--acc);font-weight:700}
+:root {
+  --primary: #1A73E8;
+  --bg: #F8F9FA;
+  --card-bg: #FFFFFF;
+  --txt: #1F2937;
+  --sub: #6B7280;
+  --border: #E5E7EB;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--txt);
+  min-height: 100vh;
+  padding: 12px 14px 40px;
+  background-color: var(--bg);
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.hdr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  position: sticky;
+  top: 8px;
+  z-index: 10;
+}
+
+.hdr h2 {
+  flex: 1;
+  font-size: 18px;
+  color: var(--txt);
+}
+
+.hdr button {
+  background: none;
+  border: 0;
+  font-size: 20px;
+  color: var(--sub);
+  padding: 4px;
+}
+
+.list {
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.row .m {
+  flex: 1;
+  min-width: 0;
+}
+
+.row .m div:first-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.sub {
+  font-size: 13px;
+  color: var(--sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.favicon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #F3F4F6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.favicon-box img {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--sub);
+  padding: 70px 20px;
+  font-size: 15px;
+}
+
+.ib {
+  background: none;
+  border: 0;
+  font-size: 18px;
+  padding: 6px;
+  color: #9CA3AF;
+}
+
+.dim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dlg {
+  width: 86%;
+  max-width: 340px;
+  border-radius: 20px;
+  padding: 20px;
+  background: #fff;
+}
+
+.dlg h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.dlg p {
+  color: var(--sub);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.dlg input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 15px;
+  margin-bottom: 12px;
+  outline: none;
+}
+
+.btns {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btns button {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #E5E7EB;
+  color: #374151;
+}
+
+.btns button.b1 {
+  background: var(--primary);
+  color: #fff;
+}
