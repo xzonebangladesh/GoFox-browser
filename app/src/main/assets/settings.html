@@ -1,0 +1,22 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Settings</title>
+<link rel="stylesheet" href="common.css"><script src="common.js"></script><style>.row{cursor:pointer}.v{color:#6c6c70;font-size:14px;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}</style></head><body>
+<div id="h"></div><div id="l"></div>
+<script>
+const E={google:'Google',bing:'Bing',duckduckgo:'DuckDuckGo',brave:'Brave',yahoo:'Yahoo'};
+let S={engine:'google',home:''};
+function load(){try{S=JSON.parse(call('getSettings'))}catch(e){}}
+function render(){load();h.innerHTML=header('Settings');
+l.innerHTML=`<div class="g">General</div><div class="list glass">
+<div class="row" id="se"><div class="m">Search engine</div><span class="v">${E[S.engine]||'Google'}</span></div>
+<div class="row" id="hp"><div class="m">Homepage</div><span class="v">${S.home?esc(host(S.home)):'GoFox Home'}</span></div></div>
+<div class="g">Privacy</div><div class="list glass"><div class="row" id="cl"><div class="m">Clear browsing data</div><span class="v">&rsaquo;</span></div></div>
+<div class="g">About</div><div class="list glass"><div class="row" id="ab"><div class="m">About GoFox</div><span class="v">v1.0 &rsaquo;</span></div></div>`;
+se.onclick=()=>{const d=dlg('<h3>Search engine</h3>'+Object.keys(E).map(k=>`<div class="opt ${k===S.engine?'on':''}" data-k="${k}">${E[k]}<span>${k===S.engine?'&#10003;':''}</span></div>`).join(''),true);
+d.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{call('setEngine',o.dataset.k);d.remove();render();call('notify','Search engine: '+E[o.dataset.k])})};
+hp.onclick=()=>{const d=dlg(`<h3>Homepage</h3><p>Enter a link to open as your home page. Leave empty for GoFox Home.</p><input id="u" placeholder="https://" value="${esc(S.home)}" inputmode="url" autocapitalize="off"><div class="btns"><button class="b0">Reset</button><button class="b1">Save</button></div>`);
+d.querySelector('.b0').onclick=()=>{call('setHomeUrl','');d.remove();setTimeout(render,150)};
+d.querySelector('.b1').onclick=()=>{call('setHomeUrl',d.querySelector('#u').value);d.remove();setTimeout(render,150)}};
+cl.onclick=()=>confirmDlg('Clear browsing data','This will delete history, cookies and cached files.','Clear',()=>call('clearData'));
+ab.onclick=()=>call('openAbout')}
+render();
+</script></body></html>

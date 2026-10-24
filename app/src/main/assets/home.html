@@ -1,0 +1,26 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GoFox</title>
+<link rel="stylesheet" href="common.css"><script src="common.js"></script>
+<style>.top{display:flex;justify-content:flex-end}.dots{width:44px;height:44px;border-radius:50%;border:0;font-size:24px;color:#333}
+.logo{text-align:center;margin-top:50px}.logo h1{font-size:34px;color:#FF6A1A;letter-spacing:-.5px;margin-top:6px}
+.search{display:flex;align-items:center;gap:12px;margin:30px 4px 0;height:56px;border-radius:28px;padding:0 20px}
+.search input{flex:1;border:0;background:none;outline:none;font-size:16px;color:#222;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 0;text-align:center;font-size:12px;margin:26px 4px;padding:20px 6px;border-radius:24px}
+.sc{display:flex;flex-direction:column;align-items:center;gap:7px;padding:0 2px}.sc span{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc .circ{width:46px;height:46px}</style></head><body>
+<div class="top"><button class="dots glass" onclick="call('openMenu')">&#8942;</button></div>
+<div class="logo"><script>document.write(FOX)</script><h1>GoFox</h1></div>
+<form class="search glass" id="f"><svg width="22" height="22" viewBox="0 0 24 24" fill="#555"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+<input id="q" placeholder="Search or type URL" autocomplete="off" autocapitalize="off" inputmode="url"></form>
+<div class="grid glass" id="sc"></div>
+<script>
+document.getElementById('f').onsubmit=e=>{e.preventDefault();const v=q.value.trim();if(v)call('openUrl',v);return false};
+function render(){const s=get('getShortcuts');const g=document.getElementById('sc');
+g.innerHTML=s.map((x,i)=>`<div class="sc" data-i="${i}">${letter(x.n,x.u)}<span>${esc(x.n)}</span></div>`).join('')+`<div class="sc" id="add"><div class="circ" style="background:#aeaeb2;font-size:26px">+</div><span>Add</span></div>`;
+g.querySelectorAll('.sc[data-i]').forEach(el=>{const x=s[el.dataset.i];let t=null,long=false;
+el.addEventListener('touchstart',()=>{long=false;t=setTimeout(()=>{long=true;confirmDlg('Remove shortcut',x.n,'Remove',()=>{call('removeShortcut',x.u);render()})},600)},{passive:true});
+el.addEventListener('touchend',()=>clearTimeout(t));el.addEventListener('touchmove',()=>clearTimeout(t),{passive:true});
+el.onclick=()=>{if(!long)call('openUrl',x.u)}});
+document.getElementById('add').onclick=()=>{const d=dlg(`<h3>Add shortcut</h3><input id="n" placeholder="Name"><input id="u" placeholder="https://" inputmode="url" autocapitalize="off"><div class="btns"><button class="b0">Cancel</button><button class="b1">Save</button></div>`);
+d.querySelector('.b0').onclick=()=>d.remove();d.querySelector('.b1').onclick=()=>{call('addShortcut',d.querySelector('#n').value,d.querySelector('#u').value);d.remove();setTimeout(render,150)}}}
+render();
+</script></body></html>

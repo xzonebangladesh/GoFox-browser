@@ -1,0 +1,16 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Downloads</title>
+<link rel="stylesheet" href="common.css"><script src="common.js"></script></head><body>
+<div id="h"></div><div id="l"></div>
+<script>
+function icon(n){n=n.toLowerCase();return /\.apk$/.test(n)?'\u{1F4E6}':/\.(mp4|mkv|webm|3gp|avi|mov)$/.test(n)?'\u{1F3AC}':/\.(jpg|jpeg|png|gif|webp|bmp)$/.test(n)?'\u{1F5BC}':/\.(mp3|m4a|wav|ogg|flac)$/.test(n)?'\u{1F3B5}':/\.pdf$/.test(n)?'\u{1F4D5}':'\u{1F4C4}'}
+function mb(b){return b>1048576?(b/1048576).toFixed(1)+' MB':Math.round(b/1024)+' KB'}
+let busy=false;
+function render(){h.innerHTML=header('Downloads');const d=get('getDownloads');
+if(!d.length){l.innerHTML='<div class="empty">No downloads yet.</div>';return}
+busy=d.some(x=>x.status==='running');
+l.innerHTML='<div class="list glass">'+d.map(x=>{const p=x.total>0?Math.round(x.sofar*100/x.total):0;
+const st=x.status==='done'?mb(x.total):x.status==='running'?(x.total>0?mb(x.sofar)+' of '+mb(x.total):'Downloading...'):x.status==='failed'?'Failed':x.status==='paused'?'Paused':'File missing';
+return `<div class="row" data-id="${x.id}" data-s="${x.status}"><div style="font-size:28px">${icon(x.name)}</div><div class="m"><div>${esc(x.name)}</div><div class="sub">${st}</div>${x.status==='running'?`<div style="height:5px;background:rgba(0,0,0,.1);border-radius:3px;margin-top:6px"><div style="width:${p}%;height:5px;background:#FF6A1A;border-radius:3px"></div></div>`:''}</div><button class="ib" data-d="${x.id}">&#128465;</button></div>`}).join('')+'</div>';
+l.querySelectorAll('.row').forEach(el=>el.onclick=e=>{if(e.target.dataset.d){call('deleteDownload',e.target.dataset.d);render()}else if(el.dataset.s==='done')call('openDownload',el.dataset.id);else call('notify','File is not ready')})}
+render();setInterval(()=>{if(busy)render()},1000);
+</script></body></html>
