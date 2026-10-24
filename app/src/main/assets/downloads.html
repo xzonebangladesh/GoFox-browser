@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Downloads</title>
   <link rel="stylesheet" href="common.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <script src="common.js"></script>
 </head>
 <body>
@@ -12,51 +13,57 @@
 <div id="l"></div>
 
 <script>
-function icon(n) {
-    n = n.toLowerCase();
-    return /\.apk$/.test(n) ? '📦' : /\.(mp4|mkv|webm|3gp|avi|mov)$/.test(n) ? '🎬' : /\.(jpg|jpeg|png|gif|webp|bmp)$/.test(n) ? '🖼️' : /\.(mp3|m4a|wav|ogg|flac)$/.test(n) ? '🎵' : /\.pdf$/.test(n) ? '📕' : '📄';
+function getFileIcon(name) {
+  const n = name.toLowerCase();
+  if (/\.apk$/.test(n)) return 'android';
+  if (/\.(mp4|mkv|webm|avi|mov|3gp)$/.test(n)) return 'movie';
+  if (/\.(jpg|jpeg|png|gif|webp|bmp)$/.test(n)) return 'image';
+  if (/\.(mp3|wav|ogg|flac|m4a)$/.test(n)) return 'audiotrack';
+  if (/\.(pdf)$/.test(n)) return 'picture_as_pdf';
+  if (/\.(zip|rar|7z|tar|gz)$/.test(n)) return 'folder_zip';
+  return 'insert_drive_file';
 }
 
 function mb(b) {
-    return b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB';
+  return b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB';
 }
 
 let busy = false;
 
 function render() {
-    h.innerHTML = header('Downloads');
-    const d = get('getDownloads');
-    if (!d.length) {
-        l.innerHTML = '<div class="empty">No downloads yet.</div>';
-        return;
-    }
-    busy = d.some(x => x.status === 'running');
-    l.innerHTML = '<div class="list card">' + d.map(x => {
-        const p = x.total > 0 ? Math.round(x.sofar * 100 / x.total) : 0;
-        const st = x.status === 'done' ? mb(x.total) : x.status === 'running' ? (x.total > 0 ? mb(x.sofar) + ' of ' + mb(x.total) : 'Downloading...') : x.status === 'failed' ? 'Failed' : x.status === 'paused' ? 'Paused' : 'File missing';
-        return `
-            <div class="row" data-id="${x.id}" data-s="${x.status}">
-                <div style="font-size:24px">${icon(x.name)}</div>
-                <div class="m">
-                    <div>${esc(x.name)}</div>
-                    <div class="sub">${st}</div>
-                    ${x.status === 'running' ? `<div style="height:4px;background:#E5E7EB;border-radius:2px;margin-top:6px;overflow:hidden"><div style="width:${p}%;height:4px;background:#1A73E8;"></div></div>` : ''}
-                </div>
-                <button class="ib" data-d="${x.id}">✕</button>
-            </div>
-        `;
-    }).join('') + '</div>';
+  h.innerHTML = header('Downloads');
+  const d = get('getDownloads');
+  if (!d.length) {
+    l.innerHTML = '<div class="empty">No downloads yet.</div>';
+    return;
+  }
+  busy = d.some(x => x.status === 'running');
+  l.innerHTML = '<div class="list card">' + d.map(x => {
+    const p = x.total > 0 ? Math.round(x.sofar * 100 / x.total) : 0;
+    const st = x.status === 'done' ? mb(x.total) : x.status === 'running' ? (x.total > 0 ? mb(x.sofar) + ' of ' + mb(x.total) : 'Downloading...') : x.status === 'failed' ? 'Failed' : x.status === 'paused' ? 'Paused' : 'File missing';
+    return `
+      <div class="row" data-id="${x.id}" data-s="${x.status}">
+        <div class="favicon-box"><span class="material-icons" style="font-size:22px; color:var(--primary);">${getFileIcon(x.name)}</span></div>
+        <div class="m">
+          <div>${esc(x.name)}</div>
+          <div class="sub">${st}</div>
+          ${x.status === 'running' ? `<div style="height:4px;background:#E5E7EB;border-radius:2px;margin-top:6px;overflow:hidden"><div style="width:${p}%;height:4px;background:var(--primary);"></div></div>` : ''}
+        </div>
+        <button class="ib" data-d="${x.id}"><span class="material-icons" style="font-size:18px;">close</span></button>
+      </div>
+    `;
+  }).join('') + '</div>';
 
-    l.querySelectorAll('.row').forEach(el => el.onclick = e => {
-        if (e.target.dataset.d) {
-            call('deleteDownload', e.target.dataset.d);
-            render();
-        } else if (el.dataset.s === 'done') {
-            call('openDownload', el.dataset.id);
-        } else {
-            call('notify', 'File is not ready');
-        }
-    });
+  l.querySelectorAll('.row').forEach(el => el.onclick = e => {
+    if (e.target.closest('[data-d]')) {
+      call('deleteDownload', e.target.closest('[data-d]').dataset.d);
+      render();
+    } else if (el.dataset.s === 'done') {
+      call('openDownload', el.dataset.id);
+    } else {
+      call('notify', 'File is not ready');
+    }
+  });
 }
 
 render();
