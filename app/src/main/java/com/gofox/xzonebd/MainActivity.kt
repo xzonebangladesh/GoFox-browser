@@ -51,6 +51,7 @@ class MainActivity : Activity() {
     private lateinit var lockView: TextView
     private lateinit var urlEdit: EditText
     private lateinit var tabCount: TextView
+    private lateinit var progressBar: ProgressBar
     private lateinit var panel: WebView
     private lateinit var toastView: TextView
     private lateinit var fullBox: FrameLayout
@@ -72,17 +73,10 @@ class MainActivity : Activity() {
         return if (id > 0) resources.getDimensionPixelSize(id) else dp(24)
     }
 
-    private fun glass(r: Int, a: Int = 0xD9): GradientDrawable = GradientDrawable().apply {
-        setColor(Color.argb(a, 255, 255, 255))
-        cornerRadius = dp(r).toFloat()
-        setStroke(dp(1), Color.argb(180, 255, 255, 255))
-    }
-
-    // ------------------------------------------------------------ lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         store = Store(this)
-        window.statusBarColor = Color.parseColor("#FFF3EA")
+        window.statusBarColor = Color.parseColor("#F8F9FA")
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
         buildUi()
         if (Build.VERSION.SDK_INT <= 28 &&
@@ -110,7 +104,7 @@ class MainActivity : Activity() {
         when {
             customView != null -> exitFullscreen()
             panel.visibility == View.VISIBLE -> hidePanel()
-            tabs[cur].web.canGoBack() -> tabs[cur].web.goBack()
+            tabs.isNotEmpty() && tabs[cur].web.canGoBack() -> tabs[cur].web.goBack()
             tabs.size > 1 -> closeTabAt(cur)
             else -> super.onBackPressed()
         }
@@ -124,32 +118,43 @@ class MainActivity : Activity() {
         } else super.onActivityResult(requestCode, resultCode, data)
     }
 
-    // ------------------------------------------------------------ UI
     @SuppressLint("SetJavaScriptEnabled")
     private fun buildUi() {
         root = FrameLayout(this)
-        root.background = GradientDrawable(
-            GradientDrawable.Orientation.TL_BR,
-            intArrayOf(0xFFFFE1CC.toInt(), 0xFFE9D5FF.toInt(), 0xFFCFE0FF.toInt())
-        )
+        root.setBackgroundColor(Color.parseColor("#F8F9FA"))
+
         content = FrameLayout(this)
         root.addView(content, FrameLayout.LayoutParams(-1, -1))
 
-        // URL card
+        // URL bar container
+        val barContainer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
         bar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            background = glass(26)
-            elevation = dp(6).toFloat()
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                cornerRadius = dp(24).toFloat()
+                setStroke(dp(1), Color.parseColor("#E5E7EB"))
+            }
+            elevation = dp(3).toFloat()
             setPadding(dp(14), 0, dp(6), 0)
         }
-        lockView = TextView(this).apply { text = "\uD83D\uDD12"; textSize = 14f }
+
+        lockView = TextView(this).apply {
+            text = "🔒"
+            textSize = 13f
+        }
+
         urlEdit = EditText(this).apply {
             background = null
             hint = "Search or type URL"
             setSingleLine()
             textSize = 15f
-            setTextColor(0xFF1C1C1E.toInt())
+            setTextColor(Color.parseColor("#1F2937"))
+            setHintTextColor(Color.parseColor("#9CA3AF"))
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             imeOptions = EditorInfo.IME_ACTION_GO
             setSelectAllOnFocus(true)
@@ -168,25 +173,50 @@ class MainActivity : Activity() {
                 if (t != null) (v as EditText).setText(if (f) t.url else shown(t.url))
             }
         }
-        val refresh = iconBtn("\u21BB", 22f) { tabs[cur].web.reload() }
+
+        val refresh = iconBtn("⟳", 20f) { tabs[cur].web.reload() }
+
         tabCount = TextView(this).apply {
-            text = "1"; textSize = 12f; gravity = Gravity.CENTER
-            setTextColor(0xFF333333.toInt())
-            background = GradientDrawable().apply { setStroke(dp(2), 0xFF444444.toInt()); cornerRadius = dp(7).toFloat() }
+            text = "1"
+            textSize = 11f
+            gravity = Gravity.CENTER
+            setTextColor(Color.parseColor("#374151"))
+            background = GradientDrawable().apply {
+                setStroke(dp(1.8f.toInt()), Color.parseColor("#374151"))
+                cornerRadius = dp(6).toFloat()
+            }
             setOnClickListener { showPanel("tabs.html") }
         }
-        val more = iconBtn("\u22EE", 24f) { showMenu() }
+
+        val more = iconBtn("⋮", 22f) { showMenu() }
+
         bar.addView(lockView)
         bar.addView(urlEdit, LinearLayout.LayoutParams(0, -1, 1f))
-        bar.addView(refresh, LinearLayout.LayoutParams(dp(38), -1))
-        bar.addView(tabCount, LinearLayout.LayoutParams(dp(24), dp(24)).apply { setMargins(dp(4), 0, dp(4), 0) })
-        bar.addView(more, LinearLayout.LayoutParams(dp(38), -1))
-        root.addView(bar, FrameLayout.LayoutParams(-1, dp(52)).apply { setMargins(dp(12), dp(6), dp(12), 0) })
+        bar.addView(refresh, LinearLayout.LayoutParams(dp(36), -1))
+        bar.addView(tabCount, LinearLayout.LayoutParams(dp(22), dp(22)).apply { setMargins(dp(6), 0, dp(6), 0) })
+        bar.addView(more, LinearLayout.LayoutParams(dp(36), -1))
 
-        // panel for Tabs / Bookmarks / History / Downloads / Settings
+        // Chrome-like Progress Bar
+        progressBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100
+            progress = 0
+            visibility = View.GONE
+            val d = GradientDrawable().apply {
+                setColor(Color.parseColor("#1A73E8"))
+                cornerRadius = dp(2).toFloat()
+            }
+            progressDrawable = d
+        }
+
+        barContainer.addView(bar, LinearLayout.LayoutParams(-1, dp(48)))
+        barContainer.addView(progressBar, LinearLayout.LayoutParams(-1, dp(3)).apply { setMargins(dp(8), dp(2), dp(8), 0) })
+
+        root.addView(barContainer, FrameLayout.LayoutParams(-1, -2).apply { setMargins(dp(10), dp(6), dp(10), 0) })
+
+        // Panel WebView (Tabs / History / Downloads / Settings)
         panel = WebView(this).apply {
             visibility = View.GONE
-            setBackgroundColor(0xFFF6EEFF.toInt())
+            setBackgroundColor(Color.parseColor("#F8F9FA"))
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = false
@@ -195,7 +225,9 @@ class MainActivity : Activity() {
                 override fun shouldOverrideUrlLoading(v: WebView, r: WebResourceRequest): Boolean {
                     val u = r.url.toString()
                     if (u.startsWith(ASSET)) return false
-                    hidePanel(); loadInCurrent(u); return true
+                    hidePanel()
+                    loadInCurrent(u)
+                    return true
                 }
             }
         }
@@ -207,26 +239,32 @@ class MainActivity : Activity() {
         toastView = TextView(this).apply {
             visibility = View.GONE
             textSize = 14f
-            setTextColor(0xFF1C1C1E.toInt())
-            background = glass(22, 0xF2)
-            elevation = dp(12).toFloat()
-            setPadding(dp(20), dp(12), dp(20), dp(12))
+            setTextColor(Color.WHITE)
+            background = GradientDrawable().apply {
+                setColor(Color.parseColor("#212529"))
+                cornerRadius = dp(20).toFloat()
+            }
+            elevation = dp(10).toFloat()
+            setPadding(dp(18), dp(10), dp(18), dp(10))
         }
-        root.addView(toastView, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin = dp(10) })
+        root.addView(toastView, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin = dp(16) })
 
         setContentView(root)
     }
 
     private fun iconBtn(t: String, size: Float, click: () -> Unit) = TextView(this).apply {
-        text = t; textSize = size; gravity = Gravity.CENTER
-        setTextColor(0xFF444444.toInt())
+        text = t
+        textSize = size
+        gravity = Gravity.CENTER
+        setTextColor(Color.parseColor("#4B5563"))
         setOnClickListener { click() }
     }
 
     private fun applyBar(f: Float) {
         barF = f
-        bar.translationY = -(1 - f) * dp(64)
-        (content.layoutParams as FrameLayout.LayoutParams).topMargin = (f * dp(64)).toInt()
+        val p = bar.parent as? View ?: bar
+        p.translationY = -(1 - f) * dp(62)
+        (content.layoutParams as FrameLayout.LayoutParams).topMargin = (f * dp(58)).toInt()
         content.requestLayout()
     }
 
@@ -249,64 +287,64 @@ class MainActivity : Activity() {
         homeActive = t.isHome
         tabCount.text = tabs.size.toString()
         barAnim?.cancel()
+        val p = bar.parent as? View ?: bar
         if (t.isHome) {
-            bar.visibility = View.GONE
+            p.visibility = View.GONE
             barTarget = 0f
             applyBar(0f)
         } else {
-            bar.visibility = View.VISIBLE
+            p.visibility = View.VISIBLE
             barTarget = 1f
             applyBar(1f)
-            lockView.text = if (t.url.startsWith("https")) "\uD83D\uDD12" else "\uD83D\uDD13"
+            lockView.text = if (t.url.startsWith("https")) "🔒" else "⚠️"
             if (!urlEdit.hasFocus()) urlEdit.setText(shown(t.url))
         }
     }
 
-    // ------------------------------------------------------------ toast (always on top)
     private fun notify(m: String) = runOnUiThread {
         toastView.animate().cancel()
         toastView.text = m
         toastView.visibility = View.VISIBLE
         toastView.alpha = 0f
-        toastView.translationY = -dp(24).toFloat()
-        toastView.animate().alpha(1f).translationY(0f).setStartDelay(0).setDuration(200).withEndAction {
-            toastView.animate().alpha(0f).translationY(-dp(24).toFloat()).setStartDelay(2200).setDuration(250)
+        toastView.translationY = -dp(20).toFloat()
+        toastView.animate().alpha(1f).translationY(0f).setDuration(180).withEndAction {
+            toastView.animate().alpha(0f).translationY(-dp(20).toFloat()).setStartDelay(2000).setDuration(220)
                 .withEndAction { toastView.visibility = View.GONE }.start()
         }.start()
     }
 
-    // ------------------------------------------------------------ menu
     private fun showMenu() {
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = glass(22, 0xF2)
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                cornerRadius = dp(16).toFloat()
+                setStroke(dp(1), Color.parseColor("#E5E7EB"))
+            }
+            elevation = dp(10).toFloat()
             setPadding(0, dp(6), 0, dp(6))
         }
-        val pw = PopupWindow(box, dp(240), ViewGroup.LayoutParams.WRAP_CONTENT, true)
+        val pw = PopupWindow(box, dp(220), ViewGroup.LayoutParams.WRAP_CONTENT, true)
         pw.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         pw.elevation = dp(12).toFloat()
+
         fun item(label: String, act: () -> Unit) = box.addView(TextView(this).apply {
-            text = label; textSize = 15f
-            setTextColor(0xFF1C1C1E.toInt())
-            setPadding(dp(22), dp(13), dp(22), dp(13))
+            text = label
+            textSize = 15f
+            setTextColor(Color.parseColor("#1F2937"))
+            setPadding(dp(18), dp(12), dp(18), dp(12))
             setOnClickListener { pw.dismiss(); act() }
         })
+
         item("New tab") { newTab() }
         item("Tabs (${tabs.size})") { showPanel("tabs.html") }
-        item("Bookmarks") { showPanel("bookmarks.html") }
         item("History") { showPanel("history.html") }
         item("Downloads") { showPanel("downloads.html") }
-        item("Add bookmark") { addBookmarkCurrent() }
-        item(if (store.desktop) "Desktop site  \u2713" else "Desktop site") { toggleDesktop() }
+        item(if (store.desktop) "Desktop site  ✓" else "Desktop site") { toggleDesktop() }
         item("Settings") { showPanel("settings.html") }
-        val off = statusH() + if (tabs[cur].isHome) dp(52) else dp(70)
-        pw.showAtLocation(root, Gravity.TOP or Gravity.END, dp(14), off)
-    }
 
-    private fun addBookmarkCurrent() {
-        val t = tabs[cur]
-        if (t.isHome || !t.url.startsWith("http")) { notify("Open a website first"); return }
-        notify(if (store.addBookmark(t.title.ifBlank { shown(t.url) }, t.url)) "Bookmark added" else "Already bookmarked")
+        val off = statusH() + if (tabs[cur].isHome) dp(50) else dp(64)
+        pw.showAtLocation(root, Gravity.TOP or Gravity.END, dp(14), off)
     }
 
     private fun toggleDesktop() {
@@ -315,9 +353,10 @@ class MainActivity : Activity() {
         notify(if (store.desktop) "Desktop site on" else "Desktop site off")
     }
 
-    // ------------------------------------------------------------ panel
     private fun showPanel(page: String) {
         urlEdit.clearFocus()
+        val p = bar.parent as? View ?: bar
+        p.visibility = View.GONE  // Fix: প্যানেলে অ্যাড্রেস বার দেখাবে না
         panel.loadUrl(ASSET + page)
         panel.alpha = 0f
         panel.visibility = View.VISIBLE
@@ -329,9 +368,9 @@ class MainActivity : Activity() {
         panel.animate().cancel()
         panel.visibility = View.GONE
         panel.loadUrl("about:blank")
+        refreshUi() // Fix: প্যানেল কাটলে অ্যাড্রেস বার স্বাভাবিক হবে
     }
 
-    // ------------------------------------------------------------ tabs
     private fun start(): String = store.homeUrl.ifBlank { HOME }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -434,12 +473,21 @@ class MainActivity : Activity() {
             override fun onPageStarted(v: WebView, u: String, f: Bitmap?) {
                 tab.url = u
                 tab.isHome = u == HOME
-                if (tabs.getOrNull(cur) === tab) refreshUi()
+                if (tabs.getOrNull(cur) === tab) {
+                    refreshUi()
+                    if (!tab.isHome) {
+                        progressBar.visibility = View.VISIBLE
+                        progressBar.progress = 10
+                    }
+                }
             }
 
             override fun onPageFinished(v: WebView, u: String) {
                 tab.title = v.title ?: ""
                 if (!tab.isHome && u.startsWith("http")) store.addHistory(tab.title.ifBlank { shown(u) }, u)
+                if (tabs.getOrNull(cur) === tab) {
+                    progressBar.visibility = View.GONE
+                }
             }
 
             override fun shouldOverrideUrlLoading(v: WebView, r: WebResourceRequest): Boolean {
@@ -454,12 +502,22 @@ class MainActivity : Activity() {
                     i.component = null
                     i.selector = null
                     startActivity(i)
-                } catch (e: Exception) {
-                }
+                } catch (e: Exception) { }
                 return true
             }
         }
         web.webChromeClient = object : WebChromeClient() {
+            override fun onProgressChanged(v: WebView?, newProgress: Int) {
+                if (tabs.getOrNull(cur)?.web === v && !tab.isHome) {
+                    if (newProgress < 100) {
+                        progressBar.visibility = View.VISIBLE
+                        progressBar.progress = newProgress
+                    } else {
+                        progressBar.visibility = View.GONE
+                    }
+                }
+            }
+
             override fun onReceivedTitle(v: WebView, t: String?) { tab.title = t ?: "" }
 
             override fun onShowCustomView(view: View, cb: CustomViewCallback) {
@@ -469,8 +527,8 @@ class MainActivity : Activity() {
                 fullBox.addView(view, FrameLayout.LayoutParams(-1, -1))
                 fullBox.visibility = View.VISIBLE
                 window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
             }
 
             override fun onHideCustomView() { exitFullscreen() }
@@ -497,7 +555,6 @@ class MainActivity : Activity() {
         customCb = null
     }
 
-    // ------------------------------------------------------------ downloads
     private fun dm() = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
     private fun startDownload(url: String, ua: String?, cd: String?, mime: String?) {
@@ -577,10 +634,10 @@ class MainActivity : Activity() {
         }
     }
 
-    // ------------------------------------------------------------ bridges
-    /** Small bridge for the Home page (loaded inside tabs). */
+    // Home Bridge
     inner class HomeBridge {
         @JavascriptInterface fun getShortcuts(): String = if (homeActive) store.shortcuts().toString() else "[]"
+        @JavascriptInterface fun getTabCount(): Int = tabs.size
 
         @JavascriptInterface fun addShortcut(n: String, u: String) {
             if (!homeActive) return
@@ -598,17 +655,18 @@ class MainActivity : Activity() {
         @JavascriptInterface fun openMenu() {
             if (homeActive) runOnUiThread { showMenu() }
         }
+
+        @JavascriptInterface fun openTabs() {
+            if (homeActive) runOnUiThread { showPanel("tabs.html") }
+        }
     }
 
-    /** Full bridge, only attached to the internal panel (never to websites). */
+    // Panel Bridge
     inner class PanelBridge {
         @JavascriptInterface fun close() = runOnUiThread { hidePanel() }
         @JavascriptInterface fun notify(m: String) = this@MainActivity.notify(m)
         @JavascriptInterface fun openUrl(q: String) = runOnUiThread { hidePanel(); loadInCurrent(resolve(q)) }
         @JavascriptInterface fun openAbout() = runOnUiThread { hidePanel(); this@MainActivity.newTab(ABOUT) }
-
-        @JavascriptInterface fun getBookmarks(): String = store.bookmarks().toString()
-        @JavascriptInterface fun removeBookmark(u: String) = store.removeBookmark(u)
 
         @JavascriptInterface fun getHistory(): String = store.history().toString()
         @JavascriptInterface fun deleteHistory(id: String) = store.deleteHistory(id)
@@ -657,4 +715,4 @@ class MainActivity : Activity() {
         @JavascriptInterface fun closeTab(i: Int) = runOnUiThread { closeTabAt(i) }
         @JavascriptInterface fun newTab() = runOnUiThread { this@MainActivity.newTab(null) }
     }
-} 
+}
