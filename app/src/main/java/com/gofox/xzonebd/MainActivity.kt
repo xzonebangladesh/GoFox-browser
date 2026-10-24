@@ -11,10 +11,10 @@ import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
+import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
@@ -41,6 +41,7 @@ class Tab(val web: WebView) {
     var url = ""
     var isHome = false
     var thumbnailBase64: String = ""
+    var themeColor: Int? = null // ওয়েবসাইটের নিজস্ব মেটা থিম কালার
 }
 
 class MainActivity : Activity() {
@@ -52,14 +53,16 @@ class MainActivity : Activity() {
         const val ABOUT = "https://gofox.fwh.is/about"
     }
 
-    private lateinit var store: Store
+    lateinit var store: Store
     private lateinit var root: FrameLayout
     private lateinit var content: FrameLayout
     private lateinit var barContainer: LinearLayout
     private lateinit var bar: LinearLayout
-    private lateinit var lockView: TextView
+    private lateinit var lockView: ImageView
     private lateinit var urlEdit: EditText
     private lateinit var tabCount: TextView
+    private lateinit var refreshBtn: ImageView
+    private lateinit var moreBtn: ImageView
     private lateinit var progressBar: ProgressBar
     private lateinit var panel: WebView
     private lateinit var toastView: TextView
@@ -79,7 +82,6 @@ class MainActivity : Activity() {
     private var customCb: WebChromeClient.CustomViewCallback? = null
     private var fileCb: ValueCallback<Array<Uri>>? = null
     private var pendingApk = -1L
-    @Volatile private var homeActive = false
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
     private fun statusH(): Int {
@@ -90,13 +92,14 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         store = Store(this)
-        window.statusBarColor = Color.parseColor("#F8F9FA")
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
         buildUi()
+        applyAppTheme()
         if (Build.VERSION.SDK_INT <= 28 &&
             checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
         ) requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 7)
-        newTab(intent?.data?.toString())
+
+        // পূর্বে খোলা থাকা ট্যাবগুলো রিস্টোর করা
+        restoreSavedTabs()
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -113,12 +116,25 @@ class MainActivity : Activity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        persistTabs()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        persistTabs()
+    }
+
+    // ব্যাক প্রেস হ্যান্ডলিং: ওয়েবসাইট থেকে ব্যাক চাপলে হোমে আসবে
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
+        val t = tabs.getOrNull(cur)
         when {
             customView != null -> exitFullscreen()
             panel.visibility == View.VISIBLE -> hidePanel()
-            tabs.isNotEmpty() && tabs[cur].web.canGoBack() -> tabs[cur].web.goBack()
+            t != null && t.web.canGoBack() -> t.web.goBack()
+            t != null && !t.isHome -> loadInCurrent(HOME)
             tabs.size > 1 -> closeTabAt(cur)
             else -> super.onBackPressed()
         }
@@ -132,12 +148,73 @@ class MainActivity : Activity() {
         } else super.onActivityResult(requestCode, resultCode, data)
     }
 
+    // ভেক্টর আইকন মেকার (জিরো ইমোজি)
+    private fun createLockIcon(isSecure: Boolean): Drawable {
+        val size = dp(16)
+        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = dp(2).toFloat()
+            color = if (isSecure) Color.parseColor("#10B981") else Color.parseColor("#F59E0B")
+        }
+        if (isSecure) {
+            val rect = RectF(dp(2).toFloat(), dp(6).toFloat(), (size - dp(2)).toFloat(), (size - dp(2)).toFloat())
+            canvas.drawRoundRect(rect, dp(3).toFloat(), dp(3).toFloat(), paint)
+            val shackle = RectF(dp(4.5f.toInt()).toFloat(), dp(2).toFloat(), (size - dp(4.5f.toInt())).toFloat(), dp(11).toFloat())
+            canvas.drawArc(shackle, 180f, 180f, false, paint)
+        } else {
+            val path = Path().apply {
+                moveTo(size / 2f, dp(2).toFloat())
+                lineTo((size - dp(2)).toFloat(), (size - dp(2)).toFloat())
+                lineTo(dp(2).toFloat(), (size - dp(2)).toFloat())
+                close()
+            }
+            canvas.drawPath(path, paint)
+        }
+        return BitmapDrawable(resources, bmp)
+    }
+
+    private fun createRefreshIcon(color: Int): Drawable {
+        val size = dp(18)
+        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = dp(2).toFloat()
+            this.color = color
+        }
+        val rect = RectF(dp(2).toFloat(), dp(2).toFloat(), (size - dp(2)).toFloat(), (size - dp(2)).toFloat())
+        canvas.drawArc(rect, 45f, 280f, false, paint)
+        paint.style = Paint.Style.FILL
+        val arrow = Path().apply {
+            moveTo((size - dp(2)).toFloat(), dp(3).toFloat())
+            lineTo((size - dp(6)).toFloat(), dp(3).toFloat())
+            lineTo((size - dp(2)).toFloat(), dp(7).toFloat())
+            close()
+        }
+        canvas.drawPath(arrow, paint)
+        return BitmapDrawable(resources, bmp)
+    }
+
+    private fun createMoreIcon(color: Int): Drawable {
+        val size = dp(18)
+        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            this.color = color
+        }
+        val r = dp(2).toFloat()
+        canvas.drawCircle(size / 2f, dp(3.5f.toInt()).toFloat(), r, paint)
+        canvas.drawCircle(size / 2f, size / 2f, r, paint)
+        canvas.drawCircle(size / 2f, size - dp(3.5f.toInt()).toFloat(), r, paint)
+        return BitmapDrawable(resources, bmp)
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     private fun buildUi() {
-        root = FrameLayout(this).apply {
-            setBackgroundColor(Color.parseColor("#F8F9FA"))
-        }
-
+        root = FrameLayout(this)
         content = FrameLayout(this)
         root.addView(content, FrameLayout.LayoutParams(-1, -1))
 
@@ -148,18 +225,12 @@ class MainActivity : Activity() {
         bar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            background = GradientDrawable().apply {
-                setColor(Color.WHITE)
-                cornerRadius = dp(24).toFloat()
-                setStroke(dp(1), Color.parseColor("#E5E7EB"))
-            }
             elevation = dp(3).toFloat()
             setPadding(dp(14), 0, dp(6), 0)
         }
 
-        lockView = TextView(this).apply {
-            text = "🔒"
-            textSize = 13f
+        lockView = ImageView(this).apply {
+            setImageDrawable(createLockIcon(true))
         }
 
         urlEdit = EditText(this).apply {
@@ -167,8 +238,6 @@ class MainActivity : Activity() {
             hint = "Search or type URL"
             setSingleLine()
             textSize = 15f
-            setTextColor(Color.parseColor("#1F2937"))
-            setHintTextColor(Color.parseColor("#9CA3AF"))
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             imeOptions = EditorInfo.IME_ACTION_GO
             setSelectAllOnFocus(true)
@@ -188,29 +257,31 @@ class MainActivity : Activity() {
             }
         }
 
-        val refresh = iconBtn("⟳", 20f) { tabs[cur].web.reload() }
+        refreshBtn = ImageView(this).apply {
+            setImageDrawable(createRefreshIcon(Color.parseColor("#4B5563")))
+            setPadding(dp(8), dp(8), dp(8), dp(8))
+            setOnClickListener { tabs[cur].web.reload() }
+        }
 
         tabCount = TextView(this).apply {
             text = "1"
             textSize = 11f
             gravity = Gravity.CENTER
-            setTextColor(Color.parseColor("#374151"))
-            background = GradientDrawable().apply {
-                setStroke(dp(2), Color.parseColor("#374151"))
-                cornerRadius = dp(6).toFloat()
-            }
             setOnClickListener { showPanel("tabs.html") }
         }
 
-        val more = iconBtn("⋮", 22f) { showMenu() }
+        moreBtn = ImageView(this).apply {
+            setImageDrawable(createMoreIcon(Color.parseColor("#4B5563")))
+            setPadding(dp(8), dp(8), dp(8), dp(8))
+            setOnClickListener { showMenu() }
+        }
 
-        bar.addView(lockView)
+        bar.addView(lockView, LinearLayout.LayoutParams(dp(18), dp(18)))
         bar.addView(urlEdit, LinearLayout.LayoutParams(0, -1, 1f))
-        bar.addView(refresh, LinearLayout.LayoutParams(dp(36), -1))
+        bar.addView(refreshBtn, LinearLayout.LayoutParams(dp(36), dp(36)))
         bar.addView(tabCount, LinearLayout.LayoutParams(dp(22), dp(22)).apply { setMargins(dp(6), 0, dp(6), 0) })
-        bar.addView(more, LinearLayout.LayoutParams(dp(36), -1))
+        bar.addView(moreBtn, LinearLayout.LayoutParams(dp(36), dp(36)))
 
-        // ক্রোম স্টাইল স্মুথ প্রগ্রেস বার
         progressBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
             max = 1000
             progress = 0
@@ -227,10 +298,8 @@ class MainActivity : Activity() {
 
         root.addView(barContainer, FrameLayout.LayoutParams(-1, -2).apply { setMargins(dp(10), dp(6), dp(10), 0) })
 
-        // প্যানেল WebView
         panel = WebView(this).apply {
             visibility = View.GONE
-            setBackgroundColor(Color.parseColor("#F8F9FA"))
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = false
@@ -254,10 +323,6 @@ class MainActivity : Activity() {
             visibility = View.GONE
             textSize = 14f
             setTextColor(Color.WHITE)
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor("#212529"))
-                cornerRadius = dp(20).toFloat()
-            }
             elevation = dp(10).toFloat()
             setPadding(dp(18), dp(10), dp(18), dp(10))
         }
@@ -266,12 +331,134 @@ class MainActivity : Activity() {
         setContentView(root)
     }
 
-    private fun iconBtn(t: String, size: Float, click: () -> Unit) = TextView(this).apply {
-        text = t
-        textSize = size
-        gravity = Gravity.CENTER
-        setTextColor(Color.parseColor("#4B5563"))
-        setOnClickListener { click() }
+    // কালার লাইট না ডার্ক তা নির্ধারণ করার অ্যালগরিদম
+    private fun isColorDark(color: Int): Boolean {
+        val darkness = 1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255.0
+        return darkness >= 0.45
+    }
+
+    // সিএসএস কালার পার্সার (Hex / RGB)
+    private fun parseCssColor(str: String): Int? {
+        var s = str.trim().lowercase()
+        if (s.startsWith("#")) {
+            if (s.length == 4) {
+                s = "#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3]
+            }
+            return try { Color.parseColor(s) } catch (e: Exception) { null }
+        }
+        if (s.startsWith("rgb")) {
+            val nums = s.substringAfter("(").substringBefore(")").split(",").map { it.trim() }
+            if (nums.size >= 3) {
+                val r = nums[0].toIntOrNull() ?: return null
+                val g = nums[1].toIntOrNull() ?: return null
+                val b = nums[2].toIntOrNull() ?: return null
+                return Color.rgb(r, g, b)
+            }
+        }
+        return try { Color.parseColor(s) } catch (e: Exception) { null }
+    }
+
+    // ক্রোমের মতো ডায়নামিক মেটা থিম কালার প্রয়োগ
+    fun applyDynamicTheme(color: Int) {
+        val isDark = isColorDark(color)
+        val textColor = if (isDark) Color.WHITE else Color.parseColor("#1F2937")
+        val subTextColor = if (isDark) Color.parseColor("#D1D5DB") else Color.parseColor("#6B7280")
+
+        window.statusBarColor = color
+        window.navigationBarColor = color
+
+        var flags = window.decorView.systemUiVisibility
+        flags = if (isDark) {
+            flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+        } else {
+            flags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            flags = if (isDark) {
+                flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
+            } else {
+                flags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            }
+        }
+        window.decorView.systemUiVisibility = flags
+
+        bar.background = GradientDrawable().apply {
+            setColor(color)
+            cornerRadius = dp(24).toFloat()
+            val strokeColor = if (isDark) Color.parseColor("#33FFFFFF") else Color.parseColor("#22000000")
+            setStroke(dp(1), strokeColor)
+        }
+
+        urlEdit.setTextColor(textColor)
+        urlEdit.setHintTextColor(subTextColor)
+        lockView.setImageDrawable(createLockIcon(tabs.getOrNull(cur)?.url?.startsWith("https") == true))
+        refreshBtn.setImageDrawable(createRefreshIcon(textColor))
+        moreBtn.setImageDrawable(createMoreIcon(textColor))
+
+        tabCount.setTextColor(textColor)
+        tabCount.background = GradientDrawable().apply {
+            setStroke(dp(2), textColor)
+            cornerRadius = dp(6).toFloat()
+        }
+    }
+
+    // ডিফল্ট অ্যাপ থিম (ডার্ক / লাইট)
+    fun applyAppTheme() {
+        val dark = store.darkMode
+        val bgColor = if (dark) Color.parseColor("#121212") else Color.parseColor("#F8F9FA")
+        val surfaceColor = if (dark) Color.parseColor("#1E1E1E") else Color.WHITE
+        val textColor = if (dark) Color.parseColor("#F3F4F6") else Color.parseColor("#1F2937")
+        val subTextColor = if (dark) Color.parseColor("#9CA3AF") else Color.parseColor("#6B7280")
+        val borderColor = if (dark) Color.parseColor("#2D2D2D") else Color.parseColor("#E5E7EB")
+
+        window.statusBarColor = bgColor
+        window.navigationBarColor = bgColor
+
+        var flags = window.decorView.systemUiVisibility
+        flags = if (dark) {
+            flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+        } else {
+            flags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            flags = if (dark) {
+                flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
+            } else {
+                flags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            }
+        }
+        window.decorView.systemUiVisibility = flags
+
+        root.setBackgroundColor(bgColor)
+        panel.setBackgroundColor(bgColor)
+
+        bar.background = GradientDrawable().apply {
+            setColor(surfaceColor)
+            cornerRadius = dp(24).toFloat()
+            setStroke(dp(1), borderColor)
+        }
+
+        urlEdit.setTextColor(textColor)
+        urlEdit.setHintTextColor(subTextColor)
+
+        tabCount.setTextColor(textColor)
+        tabCount.background = GradientDrawable().apply {
+            setStroke(dp(2), textColor)
+            cornerRadius = dp(6).toFloat()
+        }
+
+        refreshBtn.setImageDrawable(createRefreshIcon(textColor))
+        moreBtn.setImageDrawable(createMoreIcon(textColor))
+
+        toastView.background = GradientDrawable().apply {
+            setColor(if (dark) Color.parseColor("#2D2D2D") else Color.parseColor("#212529"))
+            cornerRadius = dp(20).toFloat()
+        }
+
+        tabs.forEach { tab ->
+            tab.web.evaluateJavascript("if(document.body){document.body.classList.toggle('dark', $dark);}", null)
+        }
+        panel.evaluateJavascript("if(document.body){document.body.classList.toggle('dark', $dark);}", null)
     }
 
     private fun animateProgress(newProgress: Int) {
@@ -324,19 +511,25 @@ class MainActivity : Activity() {
 
     private fun refreshUi() {
         val t = tabs.getOrNull(cur) ?: return
-        homeActive = t.isHome
         tabCount.text = tabs.size.toString()
         barAnim?.cancel()
         if (t.isHome) {
             barContainer.visibility = View.GONE
             barTarget = 0f
             applyBar(0f)
+            applyAppTheme()
         } else {
             barContainer.visibility = View.VISIBLE
             barTarget = 1f
             applyBar(1f)
-            lockView.text = if (t.url.startsWith("https")) "🔒" else "⚠️"
+            lockView.setImageDrawable(createLockIcon(t.url.startsWith("https")))
             if (!urlEdit.hasFocus()) urlEdit.setText(shown(t.url))
+            // যদি সাইটের নিজস্ব মেটা থিম কালার থাকে তবে তা ব্যবহার হবে
+            if (t.themeColor != null) {
+                applyDynamicTheme(t.themeColor!!)
+            } else {
+                applyAppTheme()
+            }
         }
     }
 
@@ -372,12 +565,13 @@ class MainActivity : Activity() {
     }
 
     private fun showMenu() {
+        val isDark = store.darkMode
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = GradientDrawable().apply {
-                setColor(Color.WHITE)
+                setColor(if (isDark) Color.parseColor("#1E1E1E") else Color.WHITE)
                 cornerRadius = dp(16).toFloat()
-                setStroke(dp(1), Color.parseColor("#E5E7EB"))
+                setStroke(dp(1), if (isDark) Color.parseColor("#2D2D2D") else Color.parseColor("#E5E7EB"))
             }
             elevation = dp(10).toFloat()
             setPadding(0, dp(6), 0, dp(6))
@@ -389,7 +583,7 @@ class MainActivity : Activity() {
         fun item(label: String, act: () -> Unit) = box.addView(TextView(this).apply {
             text = label
             textSize = 15f
-            setTextColor(Color.parseColor("#1F2937"))
+            setTextColor(if (isDark) Color.parseColor("#F3F4F6") else Color.parseColor("#1F2937"))
             setPadding(dp(18), dp(12), dp(18), dp(12))
             setOnClickListener { pw.dismiss(); act() }
         })
@@ -431,6 +625,60 @@ class MainActivity : Activity() {
 
     private fun start(): String = store.homeUrl.ifBlank { HOME }
 
+    // সব খোলা ট্যাব লোকাল মেমোরিতে সংরক্ষণ
+    private fun persistTabs() {
+        try {
+            val arr = JSONArray()
+            tabs.forEach { t ->
+                arr.put(JSONObject().apply {
+                    put("url", t.url)
+                    put("title", t.title)
+                    put("isHome", t.isHome)
+                })
+            }
+            store.saveTabs(arr.toString(), cur)
+        } catch (e: Exception) { }
+    }
+
+    // অ্যাপ চালু হলে আগের সব ট্যাব পুনরুদ্ধার (Session Restore)
+    private fun restoreSavedTabs() {
+        val saved = store.getSavedTabs()
+        val arr = try { JSONArray(saved) } catch (e: Exception) { JSONArray() }
+        val intentUrl = intent?.data?.toString()
+
+        if (arr.length() > 0) {
+            for (i in 0 until arr.length()) {
+                val o = arr.getJSONObject(i)
+                val u = o.optString("url", HOME)
+                val isHome = o.optBoolean("isHome", u == HOME)
+                val title = o.optString("title", "")
+                createTabInstance(u, title, isHome)
+            }
+            val targetCur = store.getSavedCurTab().coerceIn(0, tabs.size - 1)
+            switchTo(targetCur)
+            if (!intentUrl.isNullOrBlank()) {
+                newTab(intentUrl)
+            }
+        } else {
+            newTab(intentUrl)
+        }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun createTabInstance(url: String, savedTitle: String, isHome: Boolean) {
+        val web = WebView(this)
+        val tab = Tab(web).apply {
+            this.url = url
+            this.title = savedTitle
+            this.isHome = isHome
+        }
+        configure(web, tab)
+        tabs.add(tab)
+        content.addView(web, FrameLayout.LayoutParams(-1, -1))
+        web.visibility = View.GONE
+        web.loadUrl(url)
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     fun newTab(url: String? = null) {
         captureCurrentThumbnail()
@@ -446,6 +694,7 @@ class MainActivity : Activity() {
         web.loadUrl(u)
         hidePanel()
         switchTo(tabs.size - 1)
+        persistTabs()
     }
 
     private fun switchTo(i: Int) {
@@ -453,6 +702,7 @@ class MainActivity : Activity() {
         tabs.forEachIndexed { j, t -> t.web.visibility = if (j == i) View.VISIBLE else View.GONE }
         accumulatedScrollY = 0
         refreshUi()
+        persistTabs()
     }
 
     private fun closeTabAt(i: Int) {
@@ -460,9 +710,13 @@ class MainActivity : Activity() {
         val t = tabs.removeAt(i)
         content.removeView(t.web)
         t.web.destroy()
-        if (tabs.isEmpty()) { newTab(); return }
+        if (tabs.isEmpty()) { 
+            newTab()
+            return 
+        }
         if (i < cur) cur-- else if (i == cur) cur = minOf(cur, tabs.size - 1)
         switchTo(cur)
+        persistTabs()
     }
 
     fun loadInCurrent(u: String) {
@@ -470,8 +724,10 @@ class MainActivity : Activity() {
         t.url = u
         t.isHome = u == HOME
         t.thumbnailBase64 = ""
+        t.themeColor = null
         t.web.loadUrl(u)
         refreshUi()
+        persistTabs()
     }
 
     private fun applyUA(w: WebView) {
@@ -561,6 +817,28 @@ class MainActivity : Activity() {
                     animateProgress(100)
                     v.postDelayed({ captureCurrentThumbnail() }, 600)
                 }
+
+                // ওয়েবসাইটের <meta name="theme-color"> এক্সট্র্যাক্ট করা
+                if (!tab.isHome) {
+                    val js = "(function(){ var m = document.querySelector('meta[name=\"theme-color\"]'); return m ? m.content : ''; })();"
+                    v.evaluateJavascript(js) { res ->
+                        val clean = res?.replace("\"", "")?.trim() ?: ""
+                        val parsed = parseCssColor(clean)
+                        tab.themeColor = parsed
+                        if (tabs.getOrNull(cur) === tab) {
+                            if (parsed != null) {
+                                applyDynamicTheme(parsed)
+                            } else {
+                                applyAppTheme()
+                            }
+                        }
+                    }
+                }
+
+                if (store.darkMode) {
+                    v.evaluateJavascript("if(document.body){document.body.classList.add('dark');}", null)
+                }
+                persistTabs()
             }
 
             override fun shouldOverrideUrlLoading(v: WebView, r: WebResourceRequest): Boolean {
@@ -587,7 +865,10 @@ class MainActivity : Activity() {
                 }
             }
 
-            override fun onReceivedTitle(v: WebView, t: String?) { tab.title = t ?: "" }
+            override fun onReceivedTitle(v: WebView, t: String?) { 
+                tab.title = t ?: ""
+                persistTabs()
+            }
 
             override fun onShowCustomView(view: View, cb: CustomViewCallback) {
                 if (customView != null) { cb.onCustomViewHidden(); return }
@@ -619,7 +900,7 @@ class MainActivity : Activity() {
         fullBox.removeView(v)
         fullBox.visibility = View.GONE
         customView = null
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        applyAppTheme()
         customCb?.onCustomViewHidden()
         customCb = null
     }
@@ -703,7 +984,7 @@ class MainActivity : Activity() {
         }
     }
 
-    // --- HOME BRIDGE: HTML হোমপেজের সব কল এখানে রিসিভ হবে ---
+    // --- HOME BRIDGE ---
     inner class HomeBridge {
         @JavascriptInterface fun getShortcuts(): String = store.shortcuts().toString()
         @JavascriptInterface fun getTabCount(): Int = tabs.size
@@ -741,9 +1022,17 @@ class MainActivity : Activity() {
         @JavascriptInterface fun openAbout() {
             runOnUiThread { this@MainActivity.newTab(ABOUT) }
         }
+
+        @JavascriptInterface fun isDarkMode(): Boolean = store.darkMode
+
+        @JavascriptInterface fun toggleDarkMode(): Boolean {
+            store.darkMode = !store.darkMode
+            runOnUiThread { applyAppTheme() }
+            return store.darkMode
+        }
     }
 
-    // --- PANEL BRIDGE: Tabs/History/Settings ইত্যাদি প্যানেলের জন্য ---
+    // --- PANEL BRIDGE ---
     inner class PanelBridge {
         @JavascriptInterface fun close() = runOnUiThread { hidePanel() }
         @JavascriptInterface fun notify(m: String) = this@MainActivity.notify(m)
@@ -803,5 +1092,6 @@ class MainActivity : Activity() {
         @JavascriptInterface fun selectTab(i: Int) = runOnUiThread { hidePanel(); switchTo(i) }
         @JavascriptInterface fun closeTab(i: Int) = runOnUiThread { closeTabAt(i) }
         @JavascriptInterface fun newTab() = runOnUiThread { this@MainActivity.newTab(null) }
+        @JavascriptInterface fun isDarkMode(): Boolean = store.darkMode
     }
 }
