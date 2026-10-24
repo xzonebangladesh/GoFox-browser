@@ -27,18 +27,26 @@ function host(u) {
     }
 }
 
-// জিরো ইমোজি: ইমোজির পরিবর্তে ম্যাটেরিয়াল আইকন ব্যবহার
+// ফিক্স: কোনো ভাঙা টেক্সট নয়, পিওর গ্লোব ভেক্টর
 function favicon(u) {
     if (!u || u === 'Home' || u.startsWith('file://')) {
-        return `<div class="favicon-box"><span class="material-icons" style="font-size:20px;color:var(--sub);">language</span></div>`;
+        return `<div class="favicon-box"><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--sub)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>`;
     }
     const h = host(u);
     const src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=64`;
-    return `<div class="favicon-box"><img src="${src}" onerror="this.parentElement.innerHTML='<span class=\\'material-icons\\' style=\\'font-size:20px;color:var(--sub);\\'>language</span>'"></div>`;
+    return `<div class="favicon-box"><img src="${src}" onerror="this.parentElement.innerHTML='<svg viewBox=\\'0 0 24 24\\' width=\\'20\\' height=\\'20\\' fill=\\'var(--sub)\\'><path d=\\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z\\'/></svg>'"></div>`;
 }
 
 function header(title, extra = '') {
-    return `<div class="hdr card"><button onclick="call('close')"><span class="material-icons" style="font-size:22px;">arrow_back</span></button><h2>${esc(title)}</h2>${extra}</div>`;
+    return `
+      <div class="hdr card">
+        <button onclick="call('close')">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="var(--sub)"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        </button>
+        <h2>${esc(title)}</h2>
+        ${extra}
+      </div>
+    `;
 }
 
 function confirmDlg(title, msg, okText, onOk) {
@@ -58,7 +66,6 @@ function dlg(html) {
     return dim;
 }
 
-// প্যানেল ওপেন হলে ডার্ক মোড চেক করা
 try {
     if (call('isDarkMode')) {
         document.body.classList.add('dark');
