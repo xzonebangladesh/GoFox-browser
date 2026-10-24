@@ -6,7 +6,6 @@
 <title>GoFox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <style>
 :root {
@@ -68,9 +67,8 @@ body {
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-.top-btn:active {
-  transform: scale(0.92);
-}
+.top-btn:active { transform: scale(0.92); }
+.top-btn svg { fill: var(--text); width: 22px; height: 22px; }
 
 .tab-badge {
   font-size: 13px;
@@ -106,11 +104,8 @@ body {
   letter-spacing: -0.5px;
   color: var(--text);
 }
-.logo-area span {
-  color: var(--primary);
-}
+.logo-area span { color: var(--primary); }
 
-/* SEARCH BOX */
 .search-box {
   width: 100%;
   height: 52px;
@@ -124,25 +119,10 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   cursor: pointer;
 }
-.search-box:active {
-  transform: scale(0.99);
-}
-.search-box .icon {
-  color: var(--muted);
-  font-size: 20px;
-}
-.search-box .fake-input {
-  flex: 1;
-  color: var(--muted);
-  font-size: 15px;
-}
-.search-box .voice-btn {
-  color: var(--primary);
-  font-size: 20px;
-  padding: 6px;
-}
+.search-box:active { transform: scale(0.99); }
+.search-box svg { fill: var(--muted); width: 20px; height: 20px; }
+.search-box .fake-input { flex: 1; color: var(--muted); font-size: 15px; }
 
-/* SECTIONS */
 .section-card {
   width: 100%;
   background: var(--surface);
@@ -196,14 +176,8 @@ body {
   justify-content: center;
   overflow: hidden;
 }
-.tile:active .tic {
-  transform: scale(0.92);
-}
-.tile .tic img {
-  width: 26px;
-  height: 26px;
-  object-fit: contain;
-}
+.tile:active .tic { transform: scale(0.92); }
+.tile .tic img { width: 26px; height: 26px; object-fit: contain; }
 .tile span {
   font-size: 11.5px;
   font-weight: 500;
@@ -224,9 +198,7 @@ body {
   display: none;
   flex-direction: column;
 }
-.search-overlay.open {
-  display: flex;
-}
+.search-overlay.open { display: flex; }
 .search-top {
   display: flex;
   align-items: center;
@@ -235,6 +207,16 @@ body {
   background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
+.search-top .back-btn {
+  background: none;
+  border: 0;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.search-top .back-btn svg { fill: var(--muted); width: 24px; height: 24px; }
+
 .search-input-wrap {
   flex: 1;
   height: 44px;
@@ -246,6 +228,7 @@ body {
   padding: 0 12px;
   gap: 8px;
 }
+.search-input-wrap svg { fill: var(--muted); width: 18px; height: 18px; flex: none; }
 .search-input-wrap input {
   flex: 1;
   border: none;
@@ -254,45 +237,45 @@ body {
   font-size: 15px;
   color: var(--text);
 }
+
+/* সাজেশনের জন্য প্রফেশনাল কার্ড */
 .suggest-panel {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 14px;
+  padding: 14px 16px;
+}
+.suggest-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin-bottom: 14px;
 }
 .suggest-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 13px 12px;
-  border-radius: 12px;
+  padding: 13px 14px;
   cursor: pointer;
   font-size: 14.5px;
   color: var(--text);
+  border-bottom: 1px solid var(--line);
 }
-.suggest-item:active {
-  background: var(--surface);
-}
-.suggest-item .six {
-  color: var(--muted);
-  font-size: 18px;
-  flex: none;
-}
-.suggest-item .stxt {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.suggest-item .insert-btn {
-  color: var(--muted);
-  font-size: 16px;
-  padding: 4px;
-}
+.suggest-item:last-child { border-bottom: 0; }
+.suggest-item:active { background: var(--bg); }
+.suggest-item svg.six { fill: var(--muted); width: 18px; height: 18px; flex: none; }
+.suggest-item .stxt { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.suggest-item .link-highlight { color: var(--primary); font-weight: 600; }
+.suggest-item .insert-btn { padding: 4px; display: flex; align-items: center; cursor: pointer; }
+.suggest-item .insert-btn svg { fill: var(--muted); width: 16px; height: 16px; }
 .suggest-label {
   font-size: 11.5px;
   color: var(--muted);
-  font-weight: 600;
-  padding: 12px 8px 6px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 6px 4px 8px;
 }
 
 /* SIDE MENU */
@@ -307,11 +290,8 @@ body {
 
 .side-menu {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 82%;
-  max-width: 320px;
+  top: 0; right: 0; bottom: 0;
+  width: 82%; max-width: 320px;
   background: var(--surface);
   z-index: 201;
   padding: 24px 16px;
@@ -321,9 +301,7 @@ body {
   transition: transform 0.26s cubic-bezier(0.32, 0.72, 0, 1);
   overflow-y: auto;
 }
-.side-menu.show {
-  transform: translateX(0);
-}
+.side-menu.show { transform: translateX(0); }
 .menu-group {
   background: var(--bg);
   border: 1px solid var(--line);
@@ -345,15 +323,14 @@ body {
 .menu-item:active { background: var(--line); }
 .menu-item .lbl { flex: 1; }
 .menu-badge {
-  width: 30px;
-  height: 30px;
+  width: 30px; height: 30px;
   border-radius: 8px;
   background: rgba(26, 115, 232, 0.12);
-  color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
 }
+.menu-badge svg { fill: var(--primary); width: 18px; height: 18px; }
 
 /* BOTTOM SHEET */
 .sheet-backdrop {
@@ -364,12 +341,9 @@ body {
   display: none;
 }
 .sheet-backdrop.show { display: block; }
-
 .bottom-sheet {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 0; right: 0; bottom: 0;
   z-index: 301;
   background: var(--surface);
   border-radius: 24px 24px 0 0;
@@ -379,25 +353,16 @@ body {
   max-width: 500px;
   margin: 0 auto;
 }
-.bottom-sheet.show {
-  transform: translateY(0);
-}
+.bottom-sheet.show { transform: translateY(0); }
 .sheet-handle {
-  width: 36px;
-  height: 5px;
+  width: 36px; height: 5px;
   border-radius: 3px;
   background: var(--line);
   margin: 0 auto 16px;
 }
-.sheet-title {
-  font-size: 16px;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 16px;
-}
+.sheet-title { font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 16px; }
 .sheet-input {
-  width: 100%;
-  height: 46px;
+  width: 100%; height: 46px;
   border-radius: 12px;
   background: var(--bg);
   border: 1px solid var(--line);
@@ -407,17 +372,11 @@ body {
   outline: none;
   margin-bottom: 12px;
 }
-.sheet-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
+.sheet-actions { display: flex; gap: 10px; margin-top: 10px; }
 .sheet-btn {
-  flex: 1;
-  padding: 12px 0;
+  flex: 1; padding: 12px 0;
   border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 14px; font-weight: 600;
   text-align: center;
   cursor: pointer;
   border: none;
@@ -426,24 +385,14 @@ body {
 .sheet-btn.confirm { background: var(--primary); color: #fff; }
 
 .toast {
-  position: fixed;
-  top: 20px;
-  left: 50%;
+  position: fixed; top: 20px; left: 50%;
   transform: translateX(-50%) translateY(-30px);
-  background: #1F2937;
-  color: #fff;
-  font-size: 13.5px;
-  padding: 10px 20px;
-  border-radius: 20px;
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.2s, opacity 0.2s;
+  background: #1F2937; color: #fff; font-size: 13.5px;
+  padding: 10px 20px; border-radius: 20px; opacity: 0;
+  pointer-events: none; transition: transform 0.2s, opacity 0.2s;
   z-index: 999;
 }
-.toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -453,7 +402,7 @@ body {
     <div class="tab-badge" id="tabCount">1</div>
   </div>
   <div class="top-btn" onclick="openSideMenu()">
-    <span class="material-icons" style="font-size:22px;">more_vert</span>
+    <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
   </div>
 </div>
 
@@ -466,9 +415,9 @@ body {
   </div>
 
   <div class="search-box" onclick="openSearchOverlay()">
-    <span class="material-icons icon">search</span>
+    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
     <span class="fake-input">ওয়েব অনুসন্ধান করুন...</span>
-    <span class="material-icons voice-btn">mic</span>
+    <svg viewBox="0 0 24 24" style="fill:var(--primary);"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
   </div>
 
   <div class="section-card">
@@ -482,15 +431,19 @@ body {
   </div>
 </div>
 
-<!-- SEARCH OVERLAY WITH GOOGLE SUGGEST -->
+<!-- SEARCH OVERLAY -->
 <div class="search-overlay" id="searchOverlay">
   <div class="search-top">
-    <span class="material-icons" onclick="closeSearchOverlay()" style="cursor:pointer; color:var(--muted); font-size:24px;">arrow_back</span>
+    <button class="back-btn" onclick="closeSearchOverlay()">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
     <form id="searchForm" action="javascript:void(0);" style="display:flex; flex:1; align-items:center;">
       <div class="search-input-wrap">
-        <span class="material-icons" style="font-size:18px; color:var(--muted);">search</span>
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
         <input type="search" id="searchInput" placeholder="ওয়েবসাইট বা অনুসন্ধান লিখুন..." enterkeyhint="search" autocomplete="off">
-        <span class="material-icons" id="clearBtn" style="font-size:18px; color:var(--muted); cursor:pointer; display:none;" onclick="clearSearchInput()">close</span>
+        <span id="clearBtn" style="cursor:pointer; display:none; padding:4px;" onclick="clearSearchInput()">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:var(--muted);"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </span>
       </div>
     </form>
   </div>
@@ -506,37 +459,39 @@ body {
 
   <div class="menu-group">
     <div class="menu-item" onclick="handleMenuClick('newTab')">
-      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">add</span></div>
+      <div class="menu-badge"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
       <div class="lbl">নতুন ট্যাব</div>
     </div>
     <div class="menu-item" onclick="handleMenuClick('tabs')">
-      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">tab</span></div>
+      <div class="menu-badge"><svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/></svg></div>
       <div class="lbl">ট্যাবসমূহ</div>
     </div>
   </div>
 
   <div class="menu-group">
     <div class="menu-item" onclick="handleMenuClick('history')">
-      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">history</span></div>
+      <div class="menu-badge"><svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg></div>
       <div class="lbl">হিস্টোরি</div>
     </div>
     <div class="menu-item" onclick="handleMenuClick('downloads')">
-      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">download</span></div>
+      <div class="menu-badge"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></div>
       <div class="lbl">ডাউনলোডসমূহ</div>
     </div>
   </div>
 
   <div class="menu-group">
     <div class="menu-item" onclick="handleToggleDark()">
-      <div class="menu-badge"><span class="material-icons" id="darkIcon" style="font-size:18px;">dark_mode</span></div>
+      <div class="menu-badge" id="darkBadge">
+        <svg id="darkIcon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+      </div>
       <div class="lbl" id="darkLabel">ডার্ক মোড</div>
     </div>
     <div class="menu-item" onclick="handleMenuClick('settings')">
-      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">settings</span></div>
+      <div class="menu-badge"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></div>
       <div class="lbl">সেটিংস</div>
     </div>
     <div class="menu-item" onclick="handleMenuClick('about')">
-      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">info</span></div>
+      <div class="menu-badge"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
       <div class="lbl">সম্পর্কে (About)</div>
     </div>
   </div>
@@ -585,7 +540,6 @@ function handleMenuClick(action) {
   else if (action === 'about') call('openAbout');
 }
 
-// সাইড মেনু
 function openSideMenu() {
   history.pushState({ modal: 'sideMenu' }, '');
   document.getElementById('sideBackdrop').classList.add('show');
@@ -596,18 +550,21 @@ function closeSideMenu() {
   document.getElementById('sideMenu').classList.remove('show');
 }
 
-// ডার্ক মোড ফুল অ্যাপ সিঙ্ক
 function handleToggleDark() {
   const isDark = call('toggleDarkMode');
   syncDarkUI(isDark);
 }
 function syncDarkUI(isDark) {
   document.body.classList.toggle('dark', !!isDark);
-  document.getElementById('darkIcon').textContent = isDark ? 'light_mode' : 'dark_mode';
   document.getElementById('darkLabel').textContent = isDark ? 'লাইট মোড' : 'ডার্ক মোড';
+  const icon = document.getElementById('darkIcon');
+  if (isDark) {
+    icon.innerHTML = '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41s-1.02-.39-1.41 0z"/>';
+  } else {
+    icon.innerHTML = '<path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>';
+  }
 }
 
-// ডিফল্ট শর্টকাট
 const defaultSites = [
   { name: 'Google', url: 'https://www.google.com' },
   { name: 'YouTube', url: 'https://m.youtube.com' },
@@ -618,6 +575,11 @@ const defaultSites = [
 
 function getHost(u) {
   try { return new URL(u).hostname.replace(/^www\./, ''); } catch(e) { return u; }
+}
+
+// ফিক্স: https:// বা http:// ছাড়া পরিষ্কার লিঙ্ক ফরম্যাট
+function cleanUrlFormat(url) {
+  return url.replace(/^(https?:\/\/)?(www\.)?/i, '').replace(/\/$/, '');
 }
 
 function favicon(u) {
@@ -648,7 +610,9 @@ function renderShortcuts() {
     </div>
   `).join('') + `
     <div class="tile" onclick="openAddSheet()">
-      <div class="tic" style="border:1.5px dashed var(--line); color:var(--muted);"><span class="material-icons">add</span></div>
+      <div class="tic" style="border:1.5px dashed var(--line); color:var(--muted);">
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:var(--muted);"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      </div>
       <span>Add</span>
     </div>
   `;
@@ -662,7 +626,6 @@ function openUrl(u) {
   }
 }
 
-// শর্টকাট মডাল
 function openAddSheet() {
   history.pushState({ modal: 'addSheet' }, '');
   document.getElementById('addName').value = '';
@@ -687,7 +650,7 @@ function saveShortcut() {
   showToast('শর্টকাট যোগ হয়েছে');
 }
 
-// --- SEARCH & LIVE SUGGESTIONS ---
+// --- SEARCH & SUGGESTIONS ---
 const searchOverlay = document.getElementById('searchOverlay');
 const searchInput = document.getElementById('searchInput');
 const clearBtn = document.getElementById('clearBtn');
@@ -715,14 +678,12 @@ function clearSearchInput() {
   renderSuggestions('');
 }
 
-// ব্যাক প্রেস হলে ওপেন থাকা ওভারলে বা মডাল ক্লোজ করা (অ্যাপ বন্ধ না করে)
 window.addEventListener('popstate', () => {
   if (searchOverlay.classList.contains('open')) closeSearchOverlay();
   if (document.getElementById('sideMenu').classList.contains('show')) closeSideMenu();
   if (document.getElementById('addSheet').classList.contains('show')) closeAddSheet();
 });
 
-// গুগল লাইভ সাজেশন ফেচার
 function fetchGoogleSuggestions(query, callback) {
   const old = document.getElementById('liveSuggestScript');
   if (old) old.remove();
@@ -766,40 +727,64 @@ searchInput.addEventListener('input', (e) => {
   suggestTimer = setTimeout(() => renderSuggestions(v.trim()), 150);
 });
 
+// ফিক্স: সার্চ সাজেশনের জন্য পরিষ্কার লিঙ্ক ও মডার্ন কার্ড রেন্ডারার
 function renderSuggestions(q) {
   suggestPanel.innerHTML = '';
   const hist = getLocalHistory();
 
   if (!q) {
     if (hist.length) {
-      suggestPanel.innerHTML = '<div class="suggest-label">সাম্প্রতিক অনুসন্ধানসমূহ</div>';
+      const label = document.createElement('div');
+      label.className = 'suggest-label';
+      label.textContent = 'সাম্প্রতিক অনুসন্ধানসমূহ';
+      suggestPanel.appendChild(label);
+
+      const card = document.createElement('div');
+      card.className = 'suggest-card';
+
       hist.forEach(term => {
         const row = document.createElement('div');
         row.className = 'suggest-item';
         row.innerHTML = `
-          <span class="material-icons six">history</span>
+          <svg class="six" viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
           <span class="stxt">${term}</span>
-          <span class="material-icons insert-btn" onclick="event.stopPropagation(); putSearchTerm('${term}')">north_west</span>
+          <span class="insert-btn" onclick="event.stopPropagation(); putSearchTerm('${term}')">
+            <svg viewBox="0 0 24 24"><path d="M5 15h2V8.41L18.59 20 20 18.59 8.41 7H15V5H5v10z"/></svg>
+          </span>
         `;
         row.onclick = () => executeSearch(term);
-        suggestPanel.appendChild(row);
+        card.appendChild(row);
       });
+      suggestPanel.appendChild(card);
     }
     return;
   }
 
-  // অ্যাকশন রো (সার্চ অথবা লিংক)
   const isUrl = /^(https?:\/\/|[a-z0-9-]+\.[a-z]{2,})/i.test(q);
+  const actionCard = document.createElement('div');
+  actionCard.className = 'suggest-card';
+
   const actionRow = document.createElement('div');
   actionRow.className = 'suggest-item';
-  actionRow.innerHTML = `
-    <span class="material-icons six" style="color:var(--primary);">${isUrl ? 'link' : 'search'}</span>
-    <span class="stxt"><b style="color:var(--primary);">${q}</b> — ${isUrl ? 'সরাসরি প্রবেশ করুন' : 'Google এ খুঁজুন'}</span>
-  `;
-  actionRow.onclick = () => executeSearch(q);
-  suggestPanel.appendChild(actionRow);
 
-  // গুগল লাইভ সাজেশন
+  if (isUrl) {
+    // ফিক্স: https:// বাদ দিয়ে শুধুমাত্র সুন্দর ডোমেইন এবং আকর্ষণীয় রঙে দেখানো
+    const cleanLink = cleanUrlFormat(q);
+    actionRow.innerHTML = `
+      <svg class="six" viewBox="0 0 24 24" style="fill:var(--primary);"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+      <span class="stxt"><span class="link-highlight">${cleanLink}</span> — সরাসরি প্রবেশ করুন</span>
+    `;
+  } else {
+    actionRow.innerHTML = `
+      <svg class="six" viewBox="0 0 24 24" style="fill:var(--primary);"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <span class="stxt"><b>${q}</b> — Google এ খুঁজুন</span>
+    `;
+  }
+  actionRow.onclick = () => executeSearch(q);
+  actionCard.appendChild(actionRow);
+  suggestPanel.appendChild(actionCard);
+
+  // গুগল লাইভ সাজেশনের কার্ড
   fetchGoogleSuggestions(q, (list) => {
     const cleanList = list.filter(item => item.toLowerCase() !== q.toLowerCase());
     if (cleanList.length) {
@@ -808,17 +793,23 @@ function renderSuggestions(q) {
       label.textContent = 'সাজেশন';
       suggestPanel.appendChild(label);
 
+      const liveCard = document.createElement('div');
+      liveCard.className = 'suggest-card';
+
       cleanList.forEach(term => {
         const row = document.createElement('div');
         row.className = 'suggest-item';
         row.innerHTML = `
-          <span class="material-icons six">search</span>
+          <svg class="six" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
           <span class="stxt">${term}</span>
-          <span class="material-icons insert-btn" onclick="event.stopPropagation(); putSearchTerm('${term}')">north_west</span>
+          <span class="insert-btn" onclick="event.stopPropagation(); putSearchTerm('${term}')">
+            <svg viewBox="0 0 24 24"><path d="M5 15h2V8.41L18.59 20 20 18.59 8.41 7H15V5H5v10z"/></svg>
+          </span>
         `;
         row.onclick = () => executeSearch(term);
-        suggestPanel.appendChild(row);
+        liveCard.appendChild(row);
       });
+      suggestPanel.appendChild(liveCard);
     }
   });
 }
@@ -837,7 +828,6 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-// Initial Sync
 try {
   const isDark = call('isDarkMode');
   syncDarkUI(isDark);
