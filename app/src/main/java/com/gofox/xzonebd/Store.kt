@@ -19,6 +19,17 @@ class Store(ctx: Context) {
         get() = sp.getBoolean("desktop", false)
         set(v) { sp.edit().putBoolean("desktop", v).apply() }
 
+    var darkMode: Boolean
+        get() = sp.getBoolean("dark_mode", false)
+        set(v) { sp.edit().putBoolean("dark_mode", v).apply() }
+
+    // ট্যাব রিস্টোর ও সেভ করার জন্য
+    fun saveTabs(tabsJson: String, curIndex: Int) {
+        sp.edit().putString("saved_tabs", tabsJson).putInt("saved_cur_tab", curIndex).apply()
+    }
+    fun getSavedTabs(): String = sp.getString("saved_tabs", "[]") ?: "[]"
+    fun getSavedCurTab(): Int = sp.getInt("saved_cur_tab", 0)
+
     private fun load(k: String, def: String = "[]"): JSONArray =
         try { JSONArray(sp.getString(k, def)) } catch (e: Exception) { JSONArray() }
 
