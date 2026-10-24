@@ -40,7 +40,7 @@ class Tab(val web: WebView) {
     var title = ""
     var url = ""
     var isHome = false
-    var thumbnailBase64: String = "" // আসল পেজের থাম্বনেইল
+    var thumbnailBase64: String = ""
 }
 
 class MainActivity : Activity() {
@@ -72,9 +72,8 @@ class MainActivity : Activity() {
     private var barAnim: ValueAnimator? = null
     private var progressAnim: ObjectAnimator? = null
 
-    // স্ক্রোল থ্রেশহোল্ড ট্র্যাকিং (Chrome Style)
     private var accumulatedScrollY = 0
-    private val SCROLL_THRESHOLD = 50 // কমপক্ষে ৫০ পিক্সেল স্ক্রোল হতে হবে
+    private val SCROLL_THRESHOLD = 50
 
     private var customView: View? = null
     private var customCb: WebChromeClient.CustomViewCallback? = null
@@ -228,7 +227,7 @@ class MainActivity : Activity() {
 
         root.addView(barContainer, FrameLayout.LayoutParams(-1, -2).apply { setMargins(dp(10), dp(6), dp(10), 0) })
 
-        // Panel WebView (Tabs / History / Downloads / Settings)
+        // প্যানেল WebView
         panel = WebView(this).apply {
             visibility = View.GONE
             setBackgroundColor(Color.parseColor("#F8F9FA"))
@@ -275,7 +274,6 @@ class MainActivity : Activity() {
         setOnClickListener { click() }
     }
 
-    // ক্রোম স্টাইল স্মুথ প্রগ্রেস অ্যানিমেশন
     private fun animateProgress(newProgress: Int) {
         val target = newProgress * 10
         progressAnim?.cancel()
@@ -309,7 +307,6 @@ class MainActivity : Activity() {
         content.requestLayout()
     }
 
-    // স্মুথ বার অ্যানিমেশন
     private fun setBar(show: Boolean) {
         val t = if (show) 1f else 0f
         if (t == barTarget) return
@@ -343,7 +340,6 @@ class MainActivity : Activity() {
         }
     }
 
-    // বর্তমান ট্যাবের স্ক্রিনশট/থাম্বনেইল তোলা
     private fun captureCurrentThumbnail() {
         val t = tabs.getOrNull(cur) ?: return
         if (t.isHome || t.web.width <= 0 || t.web.height <= 0) return
@@ -415,8 +411,8 @@ class MainActivity : Activity() {
         notify(if (store.desktop) "Desktop site on" else "Desktop site off")
     }
 
-    private fun showPanel(page: String) {
-        captureCurrentThumbnail() // প্যানেলে যাওয়ার আগে পেজের থাম্বনেইল ক্যাশ করা
+    fun showPanel(page: String) {
+        captureCurrentThumbnail()
         urlEdit.clearFocus()
         barContainer.visibility = View.GONE
         panel.loadUrl(ASSET + page)
@@ -425,7 +421,7 @@ class MainActivity : Activity() {
         panel.animate().alpha(1f).setDuration(160).start()
     }
 
-    private fun hidePanel() {
+    fun hidePanel() {
         if (panel.visibility != View.VISIBLE) return
         panel.animate().cancel()
         panel.visibility = View.GONE
@@ -436,7 +432,7 @@ class MainActivity : Activity() {
     private fun start(): String = store.homeUrl.ifBlank { HOME }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun newTab(url: String? = null) {
+    fun newTab(url: String? = null) {
         captureCurrentThumbnail()
         val web = WebView(this)
         val tab = Tab(web)
@@ -469,7 +465,7 @@ class MainActivity : Activity() {
         switchTo(cur)
     }
 
-    private fun loadInCurrent(u: String) {
+    fun loadInCurrent(u: String) {
         val t = tabs[cur]
         t.url = u
         t.isHome = u == HOME
@@ -527,30 +523,22 @@ class MainActivity : Activity() {
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
         web.addJavascriptInterface(HomeBridge(), "Android")
 
-        // ক্রোম স্টাইল স্ক্রোল লজিক: সংবেদনশীল থ্রেশহোল্ড
         web.setOnScrollChangeListener { _, _, y, _, oy ->
             if (tabs.getOrNull(cur)?.web === web && !tab.isHome) {
                 val dy = y - oy
-
-                // একদম পেজের টপে থাকলে সবসময় বার শো করবে
                 if (y <= 15) {
                     accumulatedScrollY = 0
                     setBar(true)
                     return@setOnScrollChangeListener
                 }
-
-                // ডিরেকশন পরিবর্তনের সাথে ট্র্যাকিং
                 if ((dy > 0 && accumulatedScrollY < 0) || (dy < 0 && accumulatedScrollY > 0)) {
                     accumulatedScrollY = 0
                 }
-
                 accumulatedScrollY += dy
-
-                // শুধুমাত্র সুনির্দিষ্টভাবে স্ক্রোল করলে বার একশন নিবে
                 if (accumulatedScrollY > SCROLL_THRESHOLD) {
-                    setBar(false) // নিচে নামলে হাইড হবে
+                    setBar(false)
                 } else if (accumulatedScrollY < -SCROLL_THRESHOLD) {
-                    setBar(true)  // স্পষ্ট উপরে উঠলে শো করবে
+                    setBar(true)
                 }
             }
         }
@@ -571,7 +559,6 @@ class MainActivity : Activity() {
                 if (!tab.isHome && u.startsWith("http")) store.addHistory(tab.title.ifBlank { shown(u) }, u)
                 if (tabs.getOrNull(cur) === tab) {
                     animateProgress(100)
-                    // পেজ লোড শেষ হলে থাম্বনেইল ক্যাপচার
                     v.postDelayed({ captureCurrentThumbnail() }, 600)
                 }
             }
@@ -716,32 +703,47 @@ class MainActivity : Activity() {
         }
     }
 
+    // --- HOME BRIDGE: HTML হোমপেজের সব কল এখানে রিসিভ হবে ---
     inner class HomeBridge {
-        @JavascriptInterface fun getShortcuts(): String = if (homeActive) store.shortcuts().toString() else "[]"
+        @JavascriptInterface fun getShortcuts(): String = store.shortcuts().toString()
         @JavascriptInterface fun getTabCount(): Int = tabs.size
 
         @JavascriptInterface fun addShortcut(n: String, u: String) {
-            if (!homeActive) return
             val url = normalize(u) ?: run { this@MainActivity.notify("Invalid link"); return }
             store.addShortcut(n.trim().ifBlank { Uri.parse(url).host ?: url }, url)
             this@MainActivity.notify("Shortcut added")
         }
 
-        @JavascriptInterface fun removeShortcut(u: String) { if (homeActive) store.removeShortcut(u) }
+        @JavascriptInterface fun removeShortcut(u: String) { 
+            store.removeShortcut(u) 
+        }
 
         @JavascriptInterface fun openUrl(q: String) {
-            if (homeActive) runOnUiThread { loadInCurrent(resolve(q)) }
+            runOnUiThread { loadInCurrent(resolve(q)) }
         }
 
         @JavascriptInterface fun openMenu() {
-            if (homeActive) runOnUiThread { showMenu() }
+            runOnUiThread { showMenu() }
         }
 
         @JavascriptInterface fun openTabs() {
-            if (homeActive) runOnUiThread { showPanel("tabs.html") }
+            runOnUiThread { showPanel("tabs.html") }
+        }
+
+        @JavascriptInterface fun newTab() {
+            runOnUiThread { this@MainActivity.newTab(null) }
+        }
+
+        @JavascriptInterface fun openPanel(page: String) {
+            runOnUiThread { showPanel(page) }
+        }
+
+        @JavascriptInterface fun openAbout() {
+            runOnUiThread { this@MainActivity.newTab(ABOUT) }
         }
     }
 
+    // --- PANEL BRIDGE: Tabs/History/Settings ইত্যাদি প্যানেলের জন্য ---
     inner class PanelBridge {
         @JavascriptInterface fun close() = runOnUiThread { hidePanel() }
         @JavascriptInterface fun notify(m: String) = this@MainActivity.notify(m)
@@ -782,7 +784,6 @@ class MainActivity : Activity() {
             }
         }
 
-        // ট্যাবগুলোর আসল স্ক্রিনশট থাম্বনেইল সহ JSON পাঠানো
         @JavascriptInterface fun getTabs(): String {
             val a = JSONArray()
             tabs.forEachIndexed { i, t ->
