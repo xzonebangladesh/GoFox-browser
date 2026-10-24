@@ -47,7 +47,6 @@ body {
   transition: background 0.25s ease, color 0.25s ease;
 }
 
-/* TOP ACTIONS */
 .top-bar {
   display: flex;
   justify-content: flex-end;
@@ -68,7 +67,6 @@ body {
   color: var(--text);
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  transition: transform 0.15s ease, background 0.15s ease;
 }
 .top-btn:active {
   transform: scale(0.92);
@@ -86,7 +84,6 @@ body {
   justify-content: center;
 }
 
-/* HOME */
 .home {
   max-width: 520px;
   margin: 0 auto;
@@ -126,7 +123,6 @@ body {
   padding: 0 18px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   cursor: pointer;
-  transition: transform 0.15s ease;
 }
 .search-box:active {
   transform: scale(0.99);
@@ -166,7 +162,6 @@ body {
   padding-left: 4px;
 }
 
-/* GRID & SHORTCUTS */
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -200,7 +195,6 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: transform 0.15s ease;
 }
 .tile:active .tic {
   transform: scale(0.92);
@@ -243,7 +237,7 @@ body {
 }
 .search-input-wrap {
   flex: 1;
-  height: 42px;
+  height: 44px;
   border-radius: 12px;
   background: var(--bg);
   border: 1px solid var(--line);
@@ -269,19 +263,43 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
+  padding: 13px 12px;
   border-radius: 12px;
   cursor: pointer;
+  font-size: 14.5px;
+  color: var(--text);
 }
 .suggest-item:active {
   background: var(--surface);
+}
+.suggest-item .six {
+  color: var(--muted);
+  font-size: 18px;
+  flex: none;
+}
+.suggest-item .stxt {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.suggest-item .insert-btn {
+  color: var(--muted);
+  font-size: 16px;
+  padding: 4px;
+}
+.suggest-label {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 12px 8px 6px;
 }
 
 /* SIDE MENU */
 .side-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.45);
   z-index: 200;
   display: none;
 }
@@ -341,7 +359,7 @@ body {
 .sheet-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.45);
   z-index: 300;
   display: none;
 }
@@ -407,7 +425,6 @@ body {
 .sheet-btn.cancel { background: var(--bg); color: var(--text); }
 .sheet-btn.confirm { background: var(--primary); color: #fff; }
 
-/* TOAST */
 .toast {
   position: fixed;
   top: 20px;
@@ -432,18 +449,15 @@ body {
 <body>
 
 <div class="top-bar">
-  <!-- ট্যাব কাউন্টার বাটন -->
   <div class="top-btn" onclick="openTabs()">
     <div class="tab-badge" id="tabCount">1</div>
   </div>
-  <!-- ৩-ডট অপশন বাটন -->
   <div class="top-btn" onclick="openSideMenu()">
     <span class="material-icons" style="font-size:22px;">more_vert</span>
   </div>
 </div>
 
 <div class="home">
-  <!-- LOGO -->
   <div class="logo-area">
     <svg width="40" height="40" viewBox="0 0 24 24" fill="#1A73E8">
       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
@@ -451,39 +465,39 @@ body {
     <h1>Go<span>Fox</span></h1>
   </div>
 
-  <!-- SEARCH BOX -->
   <div class="search-box" onclick="openSearchOverlay()">
     <span class="material-icons icon">search</span>
     <span class="fake-input">ওয়েব অনুসন্ধান করুন...</span>
     <span class="material-icons voice-btn">mic</span>
   </div>
 
-  <!-- জনপ্রিয় সাইটসমূহ -->
   <div class="section-card">
     <div class="section-title">জনপ্রিয় সাইট</div>
     <div class="tile-row-scroll" id="defaultGrid"></div>
   </div>
 
-  <!-- আপনার কাস্টম শর্টকাটসমূহ -->
   <div class="section-card">
     <div class="section-title">আপনার শর্টকাটসমূহ</div>
     <div class="grid-4" id="customGrid"></div>
   </div>
 </div>
 
-<!-- SEARCH OVERLAY -->
+<!-- SEARCH OVERLAY WITH GOOGLE SUGGEST -->
 <div class="search-overlay" id="searchOverlay">
   <div class="search-top">
     <span class="material-icons" onclick="closeSearchOverlay()" style="cursor:pointer; color:var(--muted); font-size:24px;">arrow_back</span>
-    <div class="search-input-wrap">
-      <span class="material-icons" style="font-size:18px; color:var(--muted);">search</span>
-      <input type="text" id="searchInput" placeholder="ওয়েবসাইট বা অনুসন্ধান লিখুন..." autocomplete="off">
-    </div>
+    <form id="searchForm" action="javascript:void(0);" style="display:flex; flex:1; align-items:center;">
+      <div class="search-input-wrap">
+        <span class="material-icons" style="font-size:18px; color:var(--muted);">search</span>
+        <input type="search" id="searchInput" placeholder="ওয়েবসাইট বা অনুসন্ধান লিখুন..." enterkeyhint="search" autocomplete="off">
+        <span class="material-icons" id="clearBtn" style="font-size:18px; color:var(--muted); cursor:pointer; display:none;" onclick="clearSearchInput()">close</span>
+      </div>
+    </form>
   </div>
   <div class="suggest-panel" id="suggestPanel"></div>
 </div>
 
-<!-- ৩-ডট সাইড মেনু -->
+<!-- SIDE MENU -->
 <div class="side-backdrop" id="sideBackdrop" onclick="closeSideMenu()"></div>
 <div class="side-menu" id="sideMenu">
   <div style="font-size: 22px; font-weight:800; margin-bottom:24px; text-align:center;">
@@ -513,7 +527,7 @@ body {
   </div>
 
   <div class="menu-group">
-    <div class="menu-item" onclick="toggleDarkMode()">
+    <div class="menu-item" onclick="handleToggleDark()">
       <div class="menu-badge"><span class="material-icons" id="darkIcon" style="font-size:18px;">dark_mode</span></div>
       <div class="lbl" id="darkLabel">ডার্ক মোড</div>
     </div>
@@ -544,16 +558,13 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
-// --- Android Native Call Helper ---
 function call(method, ...args) {
   if (window.Android && window.Android[method]) {
     return window.Android[method](...args);
   }
 }
 
-function openTabs() {
-  call('openTabs');
-}
+function openTabs() { call('openTabs'); }
 
 function updateTabBadge() {
   try {
@@ -564,32 +575,36 @@ function updateTabBadge() {
   } catch(e) {}
 }
 
-// মেনু আইটেম হ্যান্ডলার
 function handleMenuClick(action) {
   closeSideMenu();
-  if (action === 'newTab') {
-    call('newTab');
-  } else if (action === 'tabs') {
-    call('openTabs');
-  } else if (action === 'history') {
-    call('openPanel', 'history.html');
-  } else if (action === 'downloads') {
-    call('openPanel', 'downloads.html');
-  } else if (action === 'settings') {
-    call('openPanel', 'settings.html');
-  } else if (action === 'about') {
-    call('openAbout');
-  }
+  if (action === 'newTab') call('newTab');
+  else if (action === 'tabs') call('openTabs');
+  else if (action === 'history') call('openPanel', 'history.html');
+  else if (action === 'downloads') call('openPanel', 'downloads.html');
+  else if (action === 'settings') call('openPanel', 'settings.html');
+  else if (action === 'about') call('openAbout');
 }
 
-// সাইড মেনু খোলা ও বন্ধ
+// সাইড মেনু
 function openSideMenu() {
+  history.pushState({ modal: 'sideMenu' }, '');
   document.getElementById('sideBackdrop').classList.add('show');
   document.getElementById('sideMenu').classList.add('show');
 }
 function closeSideMenu() {
   document.getElementById('sideBackdrop').classList.remove('show');
   document.getElementById('sideMenu').classList.remove('show');
+}
+
+// ডার্ক মোড ফুল অ্যাপ সিঙ্ক
+function handleToggleDark() {
+  const isDark = call('toggleDarkMode');
+  syncDarkUI(isDark);
+}
+function syncDarkUI(isDark) {
+  document.body.classList.toggle('dark', !!isDark);
+  document.getElementById('darkIcon').textContent = isDark ? 'light_mode' : 'dark_mode';
+  document.getElementById('darkLabel').textContent = isDark ? 'লাইট মোড' : 'ডার্ক মোড';
 }
 
 // ডিফল্ট শর্টকাট
@@ -611,22 +626,15 @@ function favicon(u) {
 }
 
 function getCustomShortcuts() {
-  try {
-    return JSON.parse(localStorage.getItem('gf_shortcuts') || '[]');
-  } catch(e) { return []; }
+  try { return JSON.parse(localStorage.getItem('gf_shortcuts') || '[]'); } catch(e) { return []; }
 }
-
-function saveCustomShortcuts(arr) {
-  localStorage.setItem('gf_shortcuts', JSON.stringify(arr));
-}
+function saveCustomShortcuts(arr) { localStorage.setItem('gf_shortcuts', JSON.stringify(arr)); }
 
 function renderShortcuts() {
   const dg = document.getElementById('defaultGrid');
   dg.innerHTML = defaultSites.map(s => `
     <div class="tile" onclick="openUrl('${s.url}')">
-      <div class="tic">
-        <img src="${favicon(s.url)}" onerror="this.src='https://www.google.com/favicon.ico'">
-      </div>
+      <div class="tic"><img src="${favicon(s.url)}" onerror="this.src='https://www.google.com/favicon.ico'"></div>
       <span>${s.name}</span>
     </div>
   `).join('');
@@ -635,14 +643,12 @@ function renderShortcuts() {
   const list = getCustomShortcuts();
   cg.innerHTML = list.map((s) => `
     <div class="tile" onclick="openUrl('${s.url}')">
-      <div class="tic">
-        <img src="${favicon(s.url)}" onerror="this.src='https://www.google.com/favicon.ico'">
-      </div>
+      <div class="tic"><img src="${favicon(s.url)}" onerror="this.src='https://www.google.com/favicon.ico'"></div>
       <span>${s.name}</span>
     </div>
   `).join('') + `
     <div class="tile" onclick="openAddSheet()">
-      <div class="tic" style="border:1.5px dashed var(--line); font-size:24px; color:var(--muted);">+</div>
+      <div class="tic" style="border:1.5px dashed var(--line); color:var(--muted);"><span class="material-icons">add</span></div>
       <span>Add</span>
     </div>
   `;
@@ -656,8 +662,9 @@ function openUrl(u) {
   }
 }
 
-// শর্টকাট যোগ
+// শর্টকাট মডাল
 function openAddSheet() {
+  history.pushState({ modal: 'addSheet' }, '');
   document.getElementById('addName').value = '';
   document.getElementById('addUrl').value = '';
   document.getElementById('addBackdrop').classList.add('show');
@@ -670,10 +677,7 @@ function closeAddSheet() {
 function saveShortcut() {
   const name = document.getElementById('addName').value.trim();
   let url = document.getElementById('addUrl').value.trim();
-  if (!name || !url) {
-    showToast('সবগুলো ঘর পূরণ করুন');
-    return;
-  }
+  if (!name || !url) return showToast('সবগুলো ঘর পূরণ করুন');
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
   const list = getCustomShortcuts();
   list.push({ name, url });
@@ -683,38 +687,148 @@ function saveShortcut() {
   showToast('শর্টকাট যোগ হয়েছে');
 }
 
-// ডার্ক মোড
-function toggleDarkMode() {
-  const isDark = document.body.classList.toggle('dark');
-  localStorage.setItem('gf_dark', isDark ? '1' : '0');
-  document.getElementById('darkIcon').textContent = isDark ? 'light_mode' : 'dark_mode';
-  document.getElementById('darkLabel').textContent = isDark ? 'লাইট মোড' : 'ডার্ক মোড';
-}
-if (localStorage.getItem('gf_dark') === '1') {
-  document.body.classList.add('dark');
-  document.getElementById('darkIcon').textContent = 'light_mode';
-  document.getElementById('darkLabel').textContent = 'লাইট মোড';
+// --- SEARCH & LIVE SUGGESTIONS ---
+const searchOverlay = document.getElementById('searchOverlay');
+const searchInput = document.getElementById('searchInput');
+const clearBtn = document.getElementById('clearBtn');
+const suggestPanel = document.getElementById('suggestPanel');
+let suggestTimer = null;
+
+function openSearchOverlay() {
+  history.pushState({ modal: 'search' }, '');
+  searchOverlay.classList.add('open');
+  searchInput.value = '';
+  renderSuggestions('');
+  setTimeout(() => searchInput.focus(), 150);
 }
 
-// সার্চ ওভারলে
-function openSearchOverlay() {
-  document.getElementById('searchOverlay').classList.add('open');
-  const input = document.getElementById('searchInput');
-  setTimeout(() => input.focus(), 150);
-}
 function closeSearchOverlay() {
-  document.getElementById('searchOverlay').classList.remove('open');
-  document.getElementById('searchInput').value = '';
+  searchOverlay.classList.remove('open');
+  searchInput.value = '';
+  clearBtn.style.display = 'none';
 }
-document.getElementById('searchInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    const q = e.target.value.trim();
-    if (q) {
-      closeSearchOverlay();
-      openUrl(q);
-    }
-  }
+
+function clearSearchInput() {
+  searchInput.value = '';
+  clearBtn.style.display = 'none';
+  searchInput.focus();
+  renderSuggestions('');
+}
+
+// ব্যাক প্রেস হলে ওপেন থাকা ওভারলে বা মডাল ক্লোজ করা (অ্যাপ বন্ধ না করে)
+window.addEventListener('popstate', () => {
+  if (searchOverlay.classList.contains('open')) closeSearchOverlay();
+  if (document.getElementById('sideMenu').classList.contains('show')) closeSideMenu();
+  if (document.getElementById('addSheet').classList.contains('show')) closeAddSheet();
 });
+
+// গুগল লাইভ সাজেশন ফেচার
+function fetchGoogleSuggestions(query, callback) {
+  const old = document.getElementById('liveSuggestScript');
+  if (old) old.remove();
+  window.__gofoxSuggestCallback = function(data) {
+    callback((data && data[1]) || []);
+  };
+  const script = document.createElement('script');
+  script.id = 'liveSuggestScript';
+  script.src = 'https://suggestqueries.google.com/complete/search?client=chrome&q='
+    + encodeURIComponent(query) + '&callback=__gofoxSuggestCallback';
+  script.onerror = () => callback([]);
+  document.body.appendChild(script);
+}
+
+function getLocalHistory() {
+  try { return JSON.parse(localStorage.getItem('gf_history') || '[]'); } catch(e) { return []; }
+}
+function pushHistory(q) {
+  let h = getLocalHistory().filter(x => x.toLowerCase() !== q.toLowerCase());
+  h.unshift(q);
+  localStorage.setItem('gf_history', JSON.stringify(h.slice(0, 20)));
+}
+
+function executeSearch(query) {
+  const q = (query || '').trim();
+  if (!q) return;
+  pushHistory(q);
+  closeSearchOverlay();
+  openUrl(q);
+}
+
+document.getElementById('searchForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  executeSearch(searchInput.value);
+});
+
+searchInput.addEventListener('input', (e) => {
+  const v = e.target.value;
+  clearBtn.style.display = v ? 'block' : 'none';
+  clearTimeout(suggestTimer);
+  suggestTimer = setTimeout(() => renderSuggestions(v.trim()), 150);
+});
+
+function renderSuggestions(q) {
+  suggestPanel.innerHTML = '';
+  const hist = getLocalHistory();
+
+  if (!q) {
+    if (hist.length) {
+      suggestPanel.innerHTML = '<div class="suggest-label">সাম্প্রতিক অনুসন্ধানসমূহ</div>';
+      hist.forEach(term => {
+        const row = document.createElement('div');
+        row.className = 'suggest-item';
+        row.innerHTML = `
+          <span class="material-icons six">history</span>
+          <span class="stxt">${term}</span>
+          <span class="material-icons insert-btn" onclick="event.stopPropagation(); putSearchTerm('${term}')">north_west</span>
+        `;
+        row.onclick = () => executeSearch(term);
+        suggestPanel.appendChild(row);
+      });
+    }
+    return;
+  }
+
+  // অ্যাকশন রো (সার্চ অথবা লিংক)
+  const isUrl = /^(https?:\/\/|[a-z0-9-]+\.[a-z]{2,})/i.test(q);
+  const actionRow = document.createElement('div');
+  actionRow.className = 'suggest-item';
+  actionRow.innerHTML = `
+    <span class="material-icons six" style="color:var(--primary);">${isUrl ? 'link' : 'search'}</span>
+    <span class="stxt"><b style="color:var(--primary);">${q}</b> — ${isUrl ? 'সরাসরি প্রবেশ করুন' : 'Google এ খুঁজুন'}</span>
+  `;
+  actionRow.onclick = () => executeSearch(q);
+  suggestPanel.appendChild(actionRow);
+
+  // গুগল লাইভ সাজেশন
+  fetchGoogleSuggestions(q, (list) => {
+    const cleanList = list.filter(item => item.toLowerCase() !== q.toLowerCase());
+    if (cleanList.length) {
+      const label = document.createElement('div');
+      label.className = 'suggest-label';
+      label.textContent = 'সাজেশন';
+      suggestPanel.appendChild(label);
+
+      cleanList.forEach(term => {
+        const row = document.createElement('div');
+        row.className = 'suggest-item';
+        row.innerHTML = `
+          <span class="material-icons six">search</span>
+          <span class="stxt">${term}</span>
+          <span class="material-icons insert-btn" onclick="event.stopPropagation(); putSearchTerm('${term}')">north_west</span>
+        `;
+        row.onclick = () => executeSearch(term);
+        suggestPanel.appendChild(row);
+      });
+    }
+  });
+}
+
+function putSearchTerm(term) {
+  searchInput.value = term;
+  clearBtn.style.display = 'block';
+  searchInput.focus();
+  renderSuggestions(term);
+}
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -723,7 +837,12 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-// Init
+// Initial Sync
+try {
+  const isDark = call('isDarkMode');
+  syncDarkUI(isDark);
+} catch(e) {}
+
 renderShortcuts();
 updateTabBadge();
 </script>
