@@ -1,26 +1,103 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GoFox</title>
-<link rel="stylesheet" href="common.css"><script src="common.js"></script>
-<style>.top{display:flex;justify-content:flex-end}.dots{width:44px;height:44px;border-radius:50%;border:0;font-size:24px;color:#333}
-.logo{text-align:center;margin-top:50px}.logo h1{font-size:34px;color:#FF6A1A;letter-spacing:-.5px;margin-top:6px}
-.search{display:flex;align-items:center;gap:12px;margin:30px 4px 0;height:56px;border-radius:28px;padding:0 20px}
-.search input{flex:1;border:0;background:none;outline:none;font-size:16px;color:#222;min-width:0}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 0;text-align:center;font-size:12px;margin:26px 4px;padding:20px 6px;border-radius:24px}
-.sc{display:flex;flex-direction:column;align-items:center;gap:7px;padding:0 2px}.sc span{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sc .circ{width:46px;height:46px}</style></head><body>
-<div class="top"><button class="dots glass" onclick="call('openMenu')">&#8942;</button></div>
-<div class="logo"><script>document.write(FOX)</script><h1>GoFox</h1></div>
-<form class="search glass" id="f"><svg width="22" height="22" viewBox="0 0 24 24" fill="#555"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-<input id="q" placeholder="Search or type URL" autocomplete="off" autocapitalize="off" inputmode="url"></form>
-<div class="grid glass" id="sc"></div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GoFox</title>
+  <link rel="stylesheet" href="common.css">
+  <script src="common.js"></script>
+  <style>
+    body { padding: 14px 16px; background-color: #F8F9FA; }
+    .top-bar { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 6px; }
+    .icon-btn { width: 38px; height: 38px; border-radius: 12px; border: 1px solid #E5E7EB; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #374151; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .logo-area { text-align: center; margin-top: 50px; }
+    .logo-area h1 { font-size: 32px; font-weight: 800; color: #1F2937; margin-top: 8px; letter-spacing: -0.5px; }
+    .logo-area span { color: #1A73E8; }
+    .search-box { display: flex; align-items: center; gap: 12px; margin: 32px 0 24px; height: 52px; border-radius: 26px; padding: 0 18px; border: 1px solid #E5E7EB; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+    .search-box input { flex: 1; border: 0; background: none; outline: none; font-size: 16px; color: #1F2937; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 0; text-align: center; font-size: 12px; padding: 18px 6px; border-radius: 18px; background: #fff; border: 1px solid #E5E7EB; }
+    .sc { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .sc span { max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #4B5563; }
+    .sc .favicon-box { width: 44px; height: 44px; border-radius: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <!-- বামে ক্রোম স্টাইল ট্যাব বাটন -->
+  <button class="icon-btn" onclick="call('openTabs')" id="tabCountBtn">1</button>
+  <!-- ডানে ৩-ডট বাটন -->
+  <button class="icon-btn" onclick="call('openMenu')">⋮</button>
+</div>
+
+<div class="logo-area">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="#1A73E8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+  <h1>Go<span>Fox</span></h1>
+</div>
+
+<form class="search-box" id="f">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+  <input id="q" placeholder="Search or type URL" autocomplete="off" autocapitalize="off" inputmode="url">
+</form>
+
+<div class="grid" id="sc"></div>
+
 <script>
-document.getElementById('f').onsubmit=e=>{e.preventDefault();const v=q.value.trim();if(v)call('openUrl',v);return false};
-function render(){const s=get('getShortcuts');const g=document.getElementById('sc');
-g.innerHTML=s.map((x,i)=>`<div class="sc" data-i="${i}">${letter(x.n,x.u)}<span>${esc(x.n)}</span></div>`).join('')+`<div class="sc" id="add"><div class="circ" style="background:#aeaeb2;font-size:26px">+</div><span>Add</span></div>`;
-g.querySelectorAll('.sc[data-i]').forEach(el=>{const x=s[el.dataset.i];let t=null,long=false;
-el.addEventListener('touchstart',()=>{long=false;t=setTimeout(()=>{long=true;confirmDlg('Remove shortcut',x.n,'Remove',()=>{call('removeShortcut',x.u);render()})},600)},{passive:true});
-el.addEventListener('touchend',()=>clearTimeout(t));el.addEventListener('touchmove',()=>clearTimeout(t),{passive:true});
-el.onclick=()=>{if(!long)call('openUrl',x.u)}});
-document.getElementById('add').onclick=()=>{const d=dlg(`<h3>Add shortcut</h3><input id="n" placeholder="Name"><input id="u" placeholder="https://" inputmode="url" autocapitalize="off"><div class="btns"><button class="b0">Cancel</button><button class="b1">Save</button></div>`);
-d.querySelector('.b0').onclick=()=>d.remove();d.querySelector('.b1').onclick=()=>{call('addShortcut',d.querySelector('#n').value,d.querySelector('#u').value);d.remove();setTimeout(render,150)}}}
+document.getElementById('f').onsubmit = e => {
+    e.preventDefault();
+    const v = q.value.trim();
+    if (v) call('openUrl', v);
+    return false;
+};
+
+function render() {
+    try {
+        const count = call('getTabCount');
+        if (count) document.getElementById('tabCountBtn').innerText = count;
+    } catch(e) {}
+
+    const s = get('getShortcuts');
+    const g = document.getElementById('sc');
+    g.innerHTML = s.map((x, i) => `
+        <div class="sc" data-i="${i}">
+            ${favicon(x.u)}
+            <span>${esc(x.n)}</span>
+        </div>
+    `).join('') + `
+        <div class="sc" id="add">
+            <div class="favicon-box" style="font-size:22px;color:#6B7280;">+</div>
+            <span>Add</span>
+        </div>`;
+
+    g.querySelectorAll('.sc[data-i]').forEach(el => {
+        const x = s[el.dataset.i];
+        let t = null, long = false;
+        el.addEventListener('touchstart', () => {
+            long = false;
+            t = setTimeout(() => {
+                long = true;
+                confirmDlg('Remove shortcut', x.n, 'Remove', () => {
+                    call('removeShortcut', x.u);
+                    render();
+                });
+            }, 600);
+        }, { passive: true });
+        el.addEventListener('touchend', () => clearTimeout(t));
+        el.addEventListener('touchmove', () => clearTimeout(t), { passive: true });
+        el.onclick = () => { if (!long) call('openUrl', x.u); };
+    });
+
+    document.getElementById('add').onclick = () => {
+        const d = dlg(`<h3>Add shortcut</h3><input id="n" placeholder="Name"><input id="u" placeholder="https://" inputmode="url" autocapitalize="off"><div class="btns"><button class="b0">Cancel</button><button class="b1">Save</button></div>`);
+        d.querySelector('.b0').onclick = () => d.remove();
+        d.querySelector('.b1').onclick = () => {
+            call('addShortcut', d.querySelector('#n').value, d.querySelector('#u').value);
+            d.remove();
+            setTimeout(render, 150);
+        };
+    };
+}
 render();
-</script></body></html>
+</script>
+</body>
+</html>
