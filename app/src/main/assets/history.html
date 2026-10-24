@@ -1,17 +1,101 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>History</title>
-<link rel="stylesheet" href="common.css"><script src="common.js"></script></head><body>
-<div id="h"></div><div id="l"></div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>History</title>
+  <link rel="stylesheet" href="common.css">
+  <script src="common.js"></script>
+  <style>
+    .g-title { font-size: 12px; font-weight: 700; color: #6B7280; padding: 12px 6px 6px; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+<div id="h"></div>
+<div id="l"></div>
+
 <script>
-function day(t){const d=new Date(t),n=new Date();const a=new Date(d.getFullYear(),d.getMonth(),d.getDate()),b=new Date(n.getFullYear(),n.getMonth(),n.getDate());
-const k=Math.round((b-a)/864e5);return k<=0?'Today':k==1?'Yesterday':'Earlier'}
-function tm(t){return new Date(t).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}
-function render(){h.innerHTML=header('History','<button onclick="clr()">&#128465;</button>');const a=get('getHistory');
-if(!a.length){l.innerHTML='<div class="empty">No history.</div>';return}
-const gr={};a.forEach(x=>{(gr[day(x.time)]=gr[day(x.time)]||[]).push(x)});l.innerHTML='';
-['Today','Yesterday','Earlier'].forEach(k=>{if(!gr[k])return;const g=document.createElement('div');g.innerHTML=`<div class="g">${k}</div>`;const box=document.createElement('div');box.className='list glass';
-gr[k].forEach(x=>{const r=document.createElement('div');r.className='row';r.innerHTML=`${letter(x.t,x.u)}<div class="m"><div>${esc(x.t)}</div><div class="sub">${esc(host(x.u))}</div></div><span class="sub">${tm(x.time)}</span>`;
-swipe(r,()=>{call('deleteHistory',x.id);r.remove();if(!box.children.length)g.remove();if(!l.children.length)render()},()=>call('openUrl',x.u));box.appendChild(r)});
-g.appendChild(box);l.appendChild(g)})}
-function clr(){confirmDlg('Clear history','Delete all browsing history?','Clear',()=>{call('clearHistory');render()})}
+function day(t) {
+    const d = new Date(t), n = new Date();
+    const a = new Date(d.getFullYear(), d.getMonth(), d.getDate()), b = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    const k = Math.round((b - a) / 864e5);
+    return k <= 0 ? 'Today' : k === 1 ? 'Yesterday' : 'Earlier';
+}
+
+function tm(t) {
+    return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function render() {
+    h.innerHTML = header('History', '<button onclick="clr()">🗑</button>');
+    const a = get('getHistory');
+    if (!a.length) {
+        l.innerHTML = '<div class="empty">No history.</div>';
+        return;
+    }
+    const gr = {};
+    a.forEach(x => { (gr[day(x.time)] = gr[day(x.time)] || []).push(x); });
+    l.innerHTML = '';
+
+    ['Today', 'Yesterday', 'Earlier'].forEach(k => {
+        if (!gr[k]) return;
+        const g = document.createElement('div');
+        g.innerHTML = `<div class="g-title">${k}</div>`;
+        const box = document.createElement('div');
+        box.className = 'list card';
+
+        gr[k].forEach(x => {
+            const r = document.createElement('div');
+            r.className = 'row';
+            r.innerHTML = `
+                ${favicon(x.u)}
+                <div class="m">
+                    <div>${esc(x.t)}</div>
+                    <div class="sub">${esc(host(x.u))} · ${tm(x.time)}</div>
+                </div>
+                <button class="ib" data-d="${x.id}">✕</button>
+            `;
+
+            // Fix: স্ক্রল করার সময় লিঙ্ক লোড হওয়া বন্ধ করার জন্য টাচ মুভমেন্ট হ্যান্ডলিং
+            let startY = 0;
+            let moved = false;
+
+            r.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+                moved = false;
+            }, { passive: true });
+
+            r.addEventListener('touchmove', (e) => {
+                if (Math.abs(e.touches[0].clientY - startY) > 8) {
+                    moved = true;
+                }
+            }, { passive: true });
+
+            r.onclick = (e) => {
+                if (moved) return; // স্ক্রল হচ্ছিল, তাই ঢুকবে না
+                if (e.target.dataset.d !== undefined) {
+                    call('deleteHistory', e.target.dataset.d);
+                    render();
+                } else {
+                    call('openUrl', x.u);
+                }
+            };
+
+            box.appendChild(r);
+        });
+
+        g.appendChild(box);
+        l.appendChild(g);
+    });
+}
+
+function clr() {
+    confirmDlg('Clear history', 'Delete all browsing history?', 'Clear', () => {
+        call('clearHistory');
+        render();
+    });
+}
 render();
-</script></body></html>
+</script>
+</body>
+</html>
