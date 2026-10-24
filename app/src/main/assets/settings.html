@@ -35,10 +35,6 @@ function render() {
         <div class="g-title">Privacy</div>
         <div class="list card">
             <div class="row" id="cl"><div class="m"><div>Clear browsing data</div><div class="sub">History, cookies and cache</div></div><span class="v">›</span></div>
-        </div>
-        <div class="g-title">About</div>
-        <div class="list card">
-            <div class="row" id="ab"><div class="m"><div>About GoFox</div><div class="sub">Version 1.0</div></div><span class="v">›</span></div>
         </div>`;
 
     se.onclick = () => {
@@ -58,7 +54,6 @@ function render() {
     };
 
     cl.onclick = () => confirmDlg('Clear browsing data', 'This will delete history, cookies and cached files.', 'Clear', () => call('clearData'));
-    ab.onclick = () => call('openAbout');
 }
 render();
 </script>
