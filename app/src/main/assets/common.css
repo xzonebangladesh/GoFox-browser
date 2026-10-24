@@ -7,6 +7,15 @@
   --border: #E5E7EB;
 }
 
+body.dark {
+  --primary: #3B82F6;
+  --bg: #121212;
+  --card-bg: #1E1E1E;
+  --txt: #F3F4F6;
+  --sub: #9CA3AF;
+  --border: #2D2D2D;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -20,6 +29,7 @@ body {
   min-height: 100vh;
   padding: 12px 14px 40px;
   background-color: var(--bg);
+  transition: background 0.25s, color 0.25s;
 }
 
 .card {
@@ -54,6 +64,8 @@ body {
   font-size: 20px;
   color: var(--sub);
   padding: 4px;
+  display: flex;
+  align-items: center;
 }
 
 .list {
@@ -99,7 +111,8 @@ body {
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  background: #F3F4F6;
+  background: var(--bg);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -107,8 +120,8 @@ body {
 }
 
 .favicon-box img {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 4px;
 }
 
@@ -122,15 +135,16 @@ body {
 .ib {
   background: none;
   border: 0;
-  font-size: 18px;
   padding: 6px;
-  color: #9CA3AF;
+  color: var(--sub);
+  display: flex;
+  align-items: center;
 }
 
 .dim {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.5);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -142,12 +156,13 @@ body {
   max-width: 340px;
   border-radius: 20px;
   padding: 20px;
-  background: #fff;
+  background: var(--card-bg);
 }
 
 .dlg h3 {
   font-size: 18px;
   margin-bottom: 8px;
+  color: var(--txt);
 }
 
 .dlg p {
@@ -162,6 +177,8 @@ body {
   border-radius: 12px;
   border: 1px solid var(--border);
   font-size: 15px;
+  background: var(--bg);
+  color: var(--txt);
   margin-bottom: 12px;
   outline: none;
 }
@@ -178,8 +195,8 @@ body {
   padding: 10px 16px;
   font-size: 14px;
   font-weight: 600;
-  background: #E5E7EB;
-  color: #374151;
+  background: var(--bg);
+  color: var(--txt);
 }
 
 .btns button.b1 {
