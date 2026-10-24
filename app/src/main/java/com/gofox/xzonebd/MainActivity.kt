@@ -41,7 +41,7 @@ class Tab(val web: WebView) {
     var url = ""
     var isHome = false
     var thumbnailBase64: String = ""
-    var themeColor: Int? = null // ওয়েবসাইটের নিজস্ব মেটা থিম কালার
+    var themeColor: Int? = null
 }
 
 class MainActivity : Activity() {
@@ -98,7 +98,6 @@ class MainActivity : Activity() {
             checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
         ) requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 7)
 
-        // পূর্বে খোলা থাকা ট্যাবগুলো রিস্টোর করা
         restoreSavedTabs()
     }
 
@@ -126,7 +125,6 @@ class MainActivity : Activity() {
         persistTabs()
     }
 
-    // ব্যাক প্রেস হ্যান্ডলিং: ওয়েবসাইট থেকে ব্যাক চাপলে হোমে আসবে
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         val t = tabs.getOrNull(cur)
@@ -148,15 +146,15 @@ class MainActivity : Activity() {
         } else super.onActivityResult(requestCode, resultCode, data)
     }
 
-    // ভেক্টর আইকন মেকার (জিরো ইমোজি)
-    private fun createLockIcon(isSecure: Boolean): Drawable {
+    // নিখুঁত ভেক্টর লক আইকন
+    private fun createLockIcon(isSecure: Boolean, strokeColor: Int? = null): Drawable {
         val size = dp(16)
         val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
-            strokeWidth = dp(2).toFloat()
-            color = if (isSecure) Color.parseColor("#10B981") else Color.parseColor("#F59E0B")
+            strokeWidth = dp(1.8f.toInt()).toFloat()
+            color = strokeColor ?: if (isSecure) Color.parseColor("#10B981") else Color.parseColor("#F59E0B")
         }
         if (isSecure) {
             val rect = RectF(dp(2).toFloat(), dp(6).toFloat(), (size - dp(2)).toFloat(), (size - dp(2)).toFloat())
@@ -175,25 +173,32 @@ class MainActivity : Activity() {
         return BitmapDrawable(resources, bmp)
     }
 
+    // ক্রোম স্টাইল পরিষ্কার রিফ্রেশ আইকন
     private fun createRefreshIcon(color: Int): Drawable {
-        val size = dp(18)
+        val size = dp(20)
         val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = dp(2).toFloat()
+            strokeCap = Paint.Cap.ROUND
             this.color = color
         }
-        val rect = RectF(dp(2).toFloat(), dp(2).toFloat(), (size - dp(2)).toFloat(), (size - dp(2)).toFloat())
-        canvas.drawArc(rect, 45f, 280f, false, paint)
-        paint.style = Paint.Style.FILL
+        val r = RectF(dp(3).toFloat(), dp(3).toFloat(), (size - dp(3)).toFloat(), (size - dp(3)).toFloat())
+        canvas.drawArc(r, 45f, 275f, false, paint)
+
+        // তীর চিহ্ন
+        val arrowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            this.color = color
+        }
         val arrow = Path().apply {
             moveTo((size - dp(2)).toFloat(), dp(3).toFloat())
-            lineTo((size - dp(6)).toFloat(), dp(3).toFloat())
-            lineTo((size - dp(2)).toFloat(), dp(7).toFloat())
+            lineTo((size - dp(7)).toFloat(), dp(3).toFloat())
+            lineTo((size - dp(2)).toFloat(), dp(8).toFloat())
             close()
         }
-        canvas.drawPath(arrow, paint)
+        canvas.drawPath(arrow, arrowPaint)
         return BitmapDrawable(resources, bmp)
     }
 
@@ -205,7 +210,7 @@ class MainActivity : Activity() {
             style = Paint.Style.FILL
             this.color = color
         }
-        val r = dp(2).toFloat()
+        val r = dp(1.8f.toInt()).toFloat()
         canvas.drawCircle(size / 2f, dp(3.5f.toInt()).toFloat(), r, paint)
         canvas.drawCircle(size / 2f, size / 2f, r, paint)
         canvas.drawCircle(size / 2f, size - dp(3.5f.toInt()).toFloat(), r, paint)
@@ -259,7 +264,7 @@ class MainActivity : Activity() {
 
         refreshBtn = ImageView(this).apply {
             setImageDrawable(createRefreshIcon(Color.parseColor("#4B5563")))
-            setPadding(dp(8), dp(8), dp(8), dp(8))
+            setPadding(dp(6), dp(6), dp(6), dp(6))
             setOnClickListener { tabs[cur].web.reload() }
         }
 
@@ -272,7 +277,7 @@ class MainActivity : Activity() {
 
         moreBtn = ImageView(this).apply {
             setImageDrawable(createMoreIcon(Color.parseColor("#4B5563")))
-            setPadding(dp(8), dp(8), dp(8), dp(8))
+            setPadding(dp(6), dp(6), dp(6), dp(6))
             setOnClickListener { showMenu() }
         }
 
@@ -331,13 +336,11 @@ class MainActivity : Activity() {
         setContentView(root)
     }
 
-    // কালার লাইট না ডার্ক তা নির্ধারণ করার অ্যালগরিদম
     private fun isColorDark(color: Int): Boolean {
         val darkness = 1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255.0
         return darkness >= 0.45
     }
 
-    // সিএসএস কালার পার্সার (Hex / RGB)
     private fun parseCssColor(str: String): Int? {
         var s = str.trim().lowercase()
         if (s.startsWith("#")) {
@@ -358,7 +361,7 @@ class MainActivity : Activity() {
         return try { Color.parseColor(s) } catch (e: Exception) { null }
     }
 
-    // ক্রোমের মতো ডায়নামিক মেটা থিম কালার প্রয়োগ
+    // ফিক্স: কোনো সাদা দাগ ছাড়াই পুরো ব্যাকগ্রাউন্ড এবং বার ওয়েবসাইটের মেটা কালারে পরিবর্তন
     fun applyDynamicTheme(color: Int) {
         val isDark = isColorDark(color)
         val textColor = if (isDark) Color.WHITE else Color.parseColor("#1F2937")
@@ -366,6 +369,9 @@ class MainActivity : Activity() {
 
         window.statusBarColor = color
         window.navigationBarColor = color
+
+        // ফিক্স: রুট ব্যাকগ্রাউন্ডকেও সেই রঙে মিলিয়ে দেওয়া যাতে কোনো সাদা ফ্রেম না থাকে
+        root.setBackgroundColor(color)
 
         var flags = window.decorView.systemUiVisibility
         flags = if (isDark) {
@@ -382,6 +388,7 @@ class MainActivity : Activity() {
         }
         window.decorView.systemUiVisibility = flags
 
+        // কার্ড ব্যাকগ্রাউন্ড
         bar.background = GradientDrawable().apply {
             setColor(color)
             cornerRadius = dp(24).toFloat()
@@ -391,7 +398,7 @@ class MainActivity : Activity() {
 
         urlEdit.setTextColor(textColor)
         urlEdit.setHintTextColor(subTextColor)
-        lockView.setImageDrawable(createLockIcon(tabs.getOrNull(cur)?.url?.startsWith("https") == true))
+        lockView.setImageDrawable(createLockIcon(tabs.getOrNull(cur)?.url?.startsWith("https") == true, textColor))
         refreshBtn.setImageDrawable(createRefreshIcon(textColor))
         moreBtn.setImageDrawable(createMoreIcon(textColor))
 
@@ -402,7 +409,6 @@ class MainActivity : Activity() {
         }
     }
 
-    // ডিফল্ট অ্যাপ থিম (ডার্ক / লাইট)
     fun applyAppTheme() {
         val dark = store.darkMode
         val bgColor = if (dark) Color.parseColor("#121212") else Color.parseColor("#F8F9FA")
@@ -524,7 +530,6 @@ class MainActivity : Activity() {
             applyBar(1f)
             lockView.setImageDrawable(createLockIcon(t.url.startsWith("https")))
             if (!urlEdit.hasFocus()) urlEdit.setText(shown(t.url))
-            // যদি সাইটের নিজস্ব মেটা থিম কালার থাকে তবে তা ব্যবহার হবে
             if (t.themeColor != null) {
                 applyDynamicTheme(t.themeColor!!)
             } else {
@@ -625,7 +630,6 @@ class MainActivity : Activity() {
 
     private fun start(): String = store.homeUrl.ifBlank { HOME }
 
-    // সব খোলা ট্যাব লোকাল মেমোরিতে সংরক্ষণ
     private fun persistTabs() {
         try {
             val arr = JSONArray()
@@ -640,7 +644,6 @@ class MainActivity : Activity() {
         } catch (e: Exception) { }
     }
 
-    // অ্যাপ চালু হলে আগের সব ট্যাব পুনরুদ্ধার (Session Restore)
     private fun restoreSavedTabs() {
         val saved = store.getSavedTabs()
         val arr = try { JSONArray(saved) } catch (e: Exception) { JSONArray() }
@@ -818,7 +821,7 @@ class MainActivity : Activity() {
                     v.postDelayed({ captureCurrentThumbnail() }, 600)
                 }
 
-                // ওয়েবসাইটের <meta name="theme-color"> এক্সট্র্যাক্ট করা
+                // ওয়েবসাইটের মেটা থিম কালার ধরা
                 if (!tab.isHome) {
                     val js = "(function(){ var m = document.querySelector('meta[name=\"theme-color\"]'); return m ? m.content : ''; })();"
                     v.evaluateJavascript(js) { res ->
@@ -984,7 +987,6 @@ class MainActivity : Activity() {
         }
     }
 
-    // --- HOME BRIDGE ---
     inner class HomeBridge {
         @JavascriptInterface fun getShortcuts(): String = store.shortcuts().toString()
         @JavascriptInterface fun getTabCount(): Int = tabs.size
@@ -995,34 +997,13 @@ class MainActivity : Activity() {
             this@MainActivity.notify("Shortcut added")
         }
 
-        @JavascriptInterface fun removeShortcut(u: String) { 
-            store.removeShortcut(u) 
-        }
-
-        @JavascriptInterface fun openUrl(q: String) {
-            runOnUiThread { loadInCurrent(resolve(q)) }
-        }
-
-        @JavascriptInterface fun openMenu() {
-            runOnUiThread { showMenu() }
-        }
-
-        @JavascriptInterface fun openTabs() {
-            runOnUiThread { showPanel("tabs.html") }
-        }
-
-        @JavascriptInterface fun newTab() {
-            runOnUiThread { this@MainActivity.newTab(null) }
-        }
-
-        @JavascriptInterface fun openPanel(page: String) {
-            runOnUiThread { showPanel(page) }
-        }
-
-        @JavascriptInterface fun openAbout() {
-            runOnUiThread { this@MainActivity.newTab(ABOUT) }
-        }
-
+        @JavascriptInterface fun removeShortcut(u: String) { store.removeShortcut(u) }
+        @JavascriptInterface fun openUrl(q: String) { runOnUiThread { loadInCurrent(resolve(q)) } }
+        @JavascriptInterface fun openMenu() { runOnUiThread { showMenu() } }
+        @JavascriptInterface fun openTabs() { runOnUiThread { showPanel("tabs.html") } }
+        @JavascriptInterface fun newTab() { runOnUiThread { this@MainActivity.newTab(null) } }
+        @JavascriptInterface fun openPanel(page: String) { runOnUiThread { showPanel(page) } }
+        @JavascriptInterface fun openAbout() { runOnUiThread { this@MainActivity.newTab(ABOUT) } }
         @JavascriptInterface fun isDarkMode(): Boolean = store.darkMode
 
         @JavascriptInterface fun toggleDarkMode(): Boolean {
@@ -1032,7 +1013,6 @@ class MainActivity : Activity() {
         }
     }
 
-    // --- PANEL BRIDGE ---
     inner class PanelBridge {
         @JavascriptInterface fun close() = runOnUiThread { hidePanel() }
         @JavascriptInterface fun notify(m: String) = this@MainActivity.notify(m)
