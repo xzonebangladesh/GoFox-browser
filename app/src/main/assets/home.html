@@ -1,103 +1,731 @@
 <!DOCTYPE html>
-<html>
+<html lang="bn">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>GoFox</title>
-  <link rel="stylesheet" href="common.css">
-  <script src="common.js"></script>
-  <style>
-    body { padding: 14px 16px; background-color: #F8F9FA; }
-    .top-bar { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 6px; }
-    .icon-btn { width: 38px; height: 38px; border-radius: 12px; border: 1px solid #E5E7EB; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #374151; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .logo-area { text-align: center; margin-top: 50px; }
-    .logo-area h1 { font-size: 32px; font-weight: 800; color: #1F2937; margin-top: 8px; letter-spacing: -0.5px; }
-    .logo-area span { color: #1A73E8; }
-    .search-box { display: flex; align-items: center; gap: 12px; margin: 32px 0 24px; height: 52px; border-radius: 26px; padding: 0 18px; border: 1px solid #E5E7EB; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
-    .search-box input { flex: 1; border: 0; background: none; outline: none; font-size: 16px; color: #1F2937; }
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 0; text-align: center; font-size: 12px; padding: 18px 6px; border-radius: 18px; background: #fff; border: 1px solid #E5E7EB; }
-    .sc { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .sc span { max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #4B5563; }
-    .sc .favicon-box { width: 44px; height: 44px; border-radius: 12px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>GoFox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #F8F9FA;
+  --surface: #FFFFFF;
+  --line: #E5E7EB;
+  --text: #1F2937;
+  --muted: #6B7280;
+  --primary: #1A73E8;
+  --danger: #EF4444;
+  --success: #10B981;
+}
+
+body.dark {
+  --bg: #121212;
+  --surface: #1E1E1E;
+  --line: #2D2D2D;
+  --text: #F3F4F6;
+  --muted: #9CA3AF;
+  --primary: #3B82F6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  user-select: none;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* TOP ACTIONS */
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px 0;
+}
+
+.top-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.top-btn:active {
+  transform: scale(0.92);
+}
+
+.tab-badge {
+  font-size: 13px;
+  font-weight: 700;
+  border: 2px solid var(--text);
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* HOME */
+.home {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 16px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo-area {
+  margin: 36px 0 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.logo-area h1 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+.logo-area span {
+  color: var(--primary);
+}
+
+/* SEARCH BOX */
+.search-box {
+  width: 100%;
+  height: 52px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.search-box:active {
+  transform: scale(0.99);
+}
+.search-box .icon {
+  color: var(--muted);
+  font-size: 20px;
+}
+.search-box .fake-input {
+  flex: 1;
+  color: var(--muted);
+  font-size: 15px;
+}
+.search-box .voice-btn {
+  color: var(--primary);
+  font-size: 20px;
+  padding: 6px;
+}
+
+/* SECTIONS */
+.section-card {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px 14px;
+  margin-top: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+/* GRID & SHORTCUTS */
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px 8px;
+}
+
+.tile-row-scroll {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.tile-row-scroll::-webkit-scrollbar { display: none; }
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  min-width: 60px;
+}
+.tile .tic {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform 0.15s ease;
+}
+.tile:active .tic {
+  transform: scale(0.92);
+}
+.tile .tic img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+.tile span {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text);
+  max-width: 68px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* SEARCH OVERLAY */
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+}
+.search-overlay.open {
+  display: flex;
+}
+.search-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.search-input-wrap {
+  flex: 1;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+}
+.search-input-wrap input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 15px;
+  color: var(--text);
+}
+.suggest-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px;
+}
+.suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.suggest-item:active {
+  background: var(--surface);
+}
+
+/* SIDE MENU */
+.side-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  display: none;
+}
+.side-backdrop.show { display: block; }
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 82%;
+  max-width: 320px;
+  background: var(--surface);
+  z-index: 201;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.26s cubic-bezier(0.32, 0.72, 0, 1);
+  overflow-y: auto;
+}
+.side-menu.show {
+  transform: translateX(0);
+}
+.menu-group {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 14.5px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--line);
+}
+.menu-item:last-child { border-bottom: none; }
+.menu-item:active { background: var(--line); }
+.menu-item .lbl { flex: 1; }
+.menu-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(26, 115, 232, 0.12);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* BOTTOM SHEET */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 300;
+  display: none;
+}
+.sheet-backdrop.show { display: block; }
+
+.bottom-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 301;
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  padding: 16px 20px 30px;
+  transform: translateY(100%);
+  transition: transform 0.28s ease;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.bottom-sheet.show {
+  transform: translateY(0);
+}
+.sheet-handle {
+  width: 36px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line);
+  margin: 0 auto 16px;
+}
+.sheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.sheet-input {
+  width: 100%;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 0 14px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  margin-bottom: 12px;
+}
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.sheet-btn {
+  flex: 1;
+  padding: 12px 0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+}
+.sheet-btn.cancel { background: var(--bg); color: var(--text); }
+.sheet-btn.confirm { background: var(--primary); color: #fff; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-30px);
+  background: #1F2937;
+  color: #fff;
+  font-size: 13.5px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.2s, opacity 0.2s;
+  z-index: 999;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+</style>
 </head>
 <body>
 
 <div class="top-bar">
-  <!-- বামে ক্রোম স্টাইল ট্যাব বাটন -->
-  <button class="icon-btn" onclick="call('openTabs')" id="tabCountBtn">1</button>
-  <!-- ডানে ৩-ডট বাটন -->
-  <button class="icon-btn" onclick="call('openMenu')">⋮</button>
+  <!-- ট্যাব কাউন্টার বাটন -->
+  <div class="top-btn" onclick="openTabs()">
+    <div class="tab-badge" id="tabCount">1</div>
+  </div>
+  <!-- ৩-ডট অপশন বাটন -->
+  <div class="top-btn" onclick="openSideMenu()">
+    <span class="material-icons" style="font-size:22px;">more_vert</span>
+  </div>
 </div>
 
-<div class="logo-area">
-  <svg width="48" height="48" viewBox="0 0 24 24" fill="#1A73E8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-  <h1>Go<span>Fox</span></h1>
+<div class="home">
+  <!-- LOGO -->
+  <div class="logo-area">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="#1A73E8">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+    </svg>
+    <h1>Go<span>Fox</span></h1>
+  </div>
+
+  <!-- SEARCH BOX -->
+  <div class="search-box" onclick="openSearchOverlay()">
+    <span class="material-icons icon">search</span>
+    <span class="fake-input">ওয়েব অনুসন্ধান করুন...</span>
+    <span class="material-icons voice-btn">mic</span>
+  </div>
+
+  <!-- জনপ্রিয় সাইটসমূহ -->
+  <div class="section-card">
+    <div class="section-title">জনপ্রিয় সাইট</div>
+    <div class="tile-row-scroll" id="defaultGrid"></div>
+  </div>
+
+  <!-- আপনার কাস্টম শর্টকাটসমূহ -->
+  <div class="section-card">
+    <div class="section-title">আপনার শর্টকাটসমূহ</div>
+    <div class="grid-4" id="customGrid"></div>
+  </div>
 </div>
 
-<form class="search-box" id="f">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-  <input id="q" placeholder="Search or type URL" autocomplete="off" autocapitalize="off" inputmode="url">
-</form>
+<!-- SEARCH OVERLAY -->
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-top">
+    <span class="material-icons" onclick="closeSearchOverlay()" style="cursor:pointer; color:var(--muted); font-size:24px;">arrow_back</span>
+    <div class="search-input-wrap">
+      <span class="material-icons" style="font-size:18px; color:var(--muted);">search</span>
+      <input type="text" id="searchInput" placeholder="ওয়েবসাইট বা অনুসন্ধান লিখুন..." autocomplete="off">
+    </div>
+  </div>
+  <div class="suggest-panel" id="suggestPanel"></div>
+</div>
 
-<div class="grid" id="sc"></div>
+<!-- ৩-ডট সাইড মেনু -->
+<div class="side-backdrop" id="sideBackdrop" onclick="closeSideMenu()"></div>
+<div class="side-menu" id="sideMenu">
+  <div style="font-size: 22px; font-weight:800; margin-bottom:24px; text-align:center;">
+    Go<span style="color:var(--primary);">Fox</span>
+  </div>
+
+  <div class="menu-group">
+    <div class="menu-item" onclick="handleMenuClick('newTab')">
+      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">add</span></div>
+      <div class="lbl">নতুন ট্যাব</div>
+    </div>
+    <div class="menu-item" onclick="handleMenuClick('tabs')">
+      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">tab</span></div>
+      <div class="lbl">ট্যাবসমূহ</div>
+    </div>
+  </div>
+
+  <div class="menu-group">
+    <div class="menu-item" onclick="handleMenuClick('history')">
+      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">history</span></div>
+      <div class="lbl">হিস্টোরি</div>
+    </div>
+    <div class="menu-item" onclick="handleMenuClick('downloads')">
+      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">download</span></div>
+      <div class="lbl">ডাউনলোডসমূহ</div>
+    </div>
+  </div>
+
+  <div class="menu-group">
+    <div class="menu-item" onclick="toggleDarkMode()">
+      <div class="menu-badge"><span class="material-icons" id="darkIcon" style="font-size:18px;">dark_mode</span></div>
+      <div class="lbl" id="darkLabel">ডার্ক মোড</div>
+    </div>
+    <div class="menu-item" onclick="handleMenuClick('settings')">
+      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">settings</span></div>
+      <div class="lbl">সেটিংস</div>
+    </div>
+    <div class="menu-item" onclick="handleMenuClick('about')">
+      <div class="menu-badge"><span class="material-icons" style="font-size:18px;">info</span></div>
+      <div class="lbl">সম্পর্কে (About)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SHORTCUT MODAL -->
+<div class="sheet-backdrop" id="addBackdrop" onclick="closeAddSheet()"></div>
+<div class="bottom-sheet" id="addSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">নতুন শর্টকাট যোগ করুন</div>
+  <input type="text" id="addName" class="sheet-input" placeholder="শর্টকাটের নাম">
+  <input type="url" id="addUrl" class="sheet-input" placeholder="https://...">
+  <div class="sheet-actions">
+    <button class="sheet-btn cancel" onclick="closeAddSheet()">বাতিল</button>
+    <button class="sheet-btn confirm" onclick="saveShortcut()">যোগ করুন</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-document.getElementById('f').onsubmit = e => {
-    e.preventDefault();
-    const v = q.value.trim();
-    if (v) call('openUrl', v);
-    return false;
-};
-
-function render() {
-    try {
-        const count = call('getTabCount');
-        if (count) document.getElementById('tabCountBtn').innerText = count;
-    } catch(e) {}
-
-    const s = get('getShortcuts');
-    const g = document.getElementById('sc');
-    g.innerHTML = s.map((x, i) => `
-        <div class="sc" data-i="${i}">
-            ${favicon(x.u)}
-            <span>${esc(x.n)}</span>
-        </div>
-    `).join('') + `
-        <div class="sc" id="add">
-            <div class="favicon-box" style="font-size:22px;color:#6B7280;">+</div>
-            <span>Add</span>
-        </div>`;
-
-    g.querySelectorAll('.sc[data-i]').forEach(el => {
-        const x = s[el.dataset.i];
-        let t = null, long = false;
-        el.addEventListener('touchstart', () => {
-            long = false;
-            t = setTimeout(() => {
-                long = true;
-                confirmDlg('Remove shortcut', x.n, 'Remove', () => {
-                    call('removeShortcut', x.u);
-                    render();
-                });
-            }, 600);
-        }, { passive: true });
-        el.addEventListener('touchend', () => clearTimeout(t));
-        el.addEventListener('touchmove', () => clearTimeout(t), { passive: true });
-        el.onclick = () => { if (!long) call('openUrl', x.u); };
-    });
-
-    document.getElementById('add').onclick = () => {
-        const d = dlg(`<h3>Add shortcut</h3><input id="n" placeholder="Name"><input id="u" placeholder="https://" inputmode="url" autocapitalize="off"><div class="btns"><button class="b0">Cancel</button><button class="b1">Save</button></div>`);
-        d.querySelector('.b0').onclick = () => d.remove();
-        d.querySelector('.b1').onclick = () => {
-            call('addShortcut', d.querySelector('#n').value, d.querySelector('#u').value);
-            d.remove();
-            setTimeout(render, 150);
-        };
-    };
+// --- Android Native Call Helper ---
+function call(method, ...args) {
+  if (window.Android && window.Android[method]) {
+    return window.Android[method](...args);
+  }
 }
-render();
+
+function openTabs() {
+  call('openTabs');
+}
+
+function updateTabBadge() {
+  try {
+    const c = call('getTabCount');
+    if (c !== undefined && c !== null) {
+      document.getElementById('tabCount').innerText = c;
+    }
+  } catch(e) {}
+}
+
+// মেনু আইটেম হ্যান্ডলার
+function handleMenuClick(action) {
+  closeSideMenu();
+  if (action === 'newTab') {
+    call('newTab');
+  } else if (action === 'tabs') {
+    call('openTabs');
+  } else if (action === 'history') {
+    call('openPanel', 'history.html');
+  } else if (action === 'downloads') {
+    call('openPanel', 'downloads.html');
+  } else if (action === 'settings') {
+    call('openPanel', 'settings.html');
+  } else if (action === 'about') {
+    call('openAbout');
+  }
+}
+
+// সাইড মেনু খোলা ও বন্ধ
+function openSideMenu() {
+  document.getElementById('sideBackdrop').classList.add('show');
+  document.getElementById('sideMenu').classList.add('show');
+}
+function closeSideMenu() {
+  document.getElementById('sideBackdrop').classList.remove('show');
+  document.getElementById('sideMenu').classList.remove('show');
+}
+
+// ডিফল্ট শর্টকাট
+const defaultSites = [
+  { name: 'Google', url: 'https://www.google.com' },
+  { name: 'YouTube', url: 'https://m.youtube.com' },
+  { name: 'Facebook', url: 'https://m.facebook.com' },
+  { name: 'Wikipedia', url: 'https://www.wikipedia.org' },
+  { name: 'Cricbuzz', url: 'https://www.cricbuzz.com' }
+];
+
+function getHost(u) {
+  try { return new URL(u).hostname.replace(/^www\./, ''); } catch(e) { return u; }
+}
+
+function favicon(u) {
+  const h = getHost(u);
+  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(h)}&sz=64`;
+}
+
+function getCustomShortcuts() {
+  try {
+    return JSON.parse(localStorage.getItem('gf_shortcuts') || '[]');
+  } catch(e) { return []; }
+}
+
+function saveCustomShortcuts(arr) {
+  localStorage.setItem('gf_shortcuts', JSON.stringify(arr));
+}
+
+function renderShortcuts() {
+  const dg = document.getElementById('defaultGrid');
+  dg.innerHTML = defaultSites.map(s => `
+    <div class="tile" onclick="openUrl('${s.url}')">
+      <div class="tic">
+        <img src="${favicon(s.url)}" onerror="this.src='https://www.google.com/favicon.ico'">
+      </div>
+      <span>${s.name}</span>
+    </div>
+  `).join('');
+
+  const cg = document.getElementById('customGrid');
+  const list = getCustomShortcuts();
+  cg.innerHTML = list.map((s) => `
+    <div class="tile" onclick="openUrl('${s.url}')">
+      <div class="tic">
+        <img src="${favicon(s.url)}" onerror="this.src='https://www.google.com/favicon.ico'">
+      </div>
+      <span>${s.name}</span>
+    </div>
+  `).join('') + `
+    <div class="tile" onclick="openAddSheet()">
+      <div class="tic" style="border:1.5px dashed var(--line); font-size:24px; color:var(--muted);">+</div>
+      <span>Add</span>
+    </div>
+  `;
+}
+
+function openUrl(u) {
+  if (window.Android && window.Android.openUrl) {
+    call('openUrl', u);
+  } else {
+    window.location.href = u;
+  }
+}
+
+// শর্টকাট যোগ
+function openAddSheet() {
+  document.getElementById('addName').value = '';
+  document.getElementById('addUrl').value = '';
+  document.getElementById('addBackdrop').classList.add('show');
+  document.getElementById('addSheet').classList.add('show');
+}
+function closeAddSheet() {
+  document.getElementById('addBackdrop').classList.remove('show');
+  document.getElementById('addSheet').classList.remove('show');
+}
+function saveShortcut() {
+  const name = document.getElementById('addName').value.trim();
+  let url = document.getElementById('addUrl').value.trim();
+  if (!name || !url) {
+    showToast('সবগুলো ঘর পূরণ করুন');
+    return;
+  }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  const list = getCustomShortcuts();
+  list.push({ name, url });
+  saveCustomShortcuts(list);
+  closeAddSheet();
+  renderShortcuts();
+  showToast('শর্টকাট যোগ হয়েছে');
+}
+
+// ডার্ক মোড
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('gf_dark', isDark ? '1' : '0');
+  document.getElementById('darkIcon').textContent = isDark ? 'light_mode' : 'dark_mode';
+  document.getElementById('darkLabel').textContent = isDark ? 'লাইট মোড' : 'ডার্ক মোড';
+}
+if (localStorage.getItem('gf_dark') === '1') {
+  document.body.classList.add('dark');
+  document.getElementById('darkIcon').textContent = 'light_mode';
+  document.getElementById('darkLabel').textContent = 'লাইট মোড';
+}
+
+// সার্চ ওভারলে
+function openSearchOverlay() {
+  document.getElementById('searchOverlay').classList.add('open');
+  const input = document.getElementById('searchInput');
+  setTimeout(() => input.focus(), 150);
+}
+function closeSearchOverlay() {
+  document.getElementById('searchOverlay').classList.remove('open');
+  document.getElementById('searchInput').value = '';
+}
+document.getElementById('searchInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const q = e.target.value.trim();
+    if (q) {
+      closeSearchOverlay();
+      openUrl(q);
+    }
+  }
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Init
+renderShortcuts();
+updateTabBadge();
 </script>
 </body>
 </html>
